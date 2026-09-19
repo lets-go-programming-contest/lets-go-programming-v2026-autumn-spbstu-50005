@@ -5,22 +5,19 @@ import "fmt"
 func main() {
 	var iNumber1, iNumber2 int
 	var operation string
-	fmt.Println("enter first number: ")
 	_, err := fmt.Scanln(&iNumber1)
 	if err != nil {
-		fmt.Println("ERROR: not a number")
+		fmt.Println("Invalid first operand")
 		return
 	}
-	fmt.Println("enter second number: ")
 	_, err = fmt.Scanln(&iNumber2)
 	if err != nil {
-		fmt.Println("ERROR: not a number")
+		fmt.Println("Invalid second operand")
 		return
 	}
-	fmt.Println("choose the operation (+, -, *, /): ")
 	_, err = fmt.Scanln(&operation)
 	if err != nil {
-		fmt.Println("ERROR: invalid operation")
+		fmt.Println("Invalid operation")
 		return
 	}
 
@@ -36,12 +33,12 @@ func main() {
 
 	case "/":
 		if iNumber2 == 0 {
-			fmt.Println("ERROR: divizion by zero")
+			fmt.Println("Division by zero")
 			return
 		}
 
 		fmt.Println(iNumber1 / iNumber2)
 	default:
-		fmt.Println("wrong operation")
+		fmt.Println("Invalid operation")
 	}
 }
