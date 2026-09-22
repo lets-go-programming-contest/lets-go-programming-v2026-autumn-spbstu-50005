@@ -20,11 +20,9 @@ func main() {
 		fmt.Println("Invalid operation")
 		return
 	}
-
 	switch operation {
 	case "+":
 		fmt.Println(iNumber1 + iNumber2)
-
 	case "-":
 		fmt.Println(iNumber1 - iNumber2)
 
@@ -36,7 +34,6 @@ func main() {
 			fmt.Println("Division by zero")
 			return
 		}
-
 		fmt.Println(iNumber1 / iNumber2)
 	default:
 		fmt.Println("Invalid operation")
