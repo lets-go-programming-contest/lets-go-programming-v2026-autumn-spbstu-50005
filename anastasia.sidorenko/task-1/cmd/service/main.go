@@ -1,32 +1,21 @@
 package main
 
-import (
-	"fmt"
-	"strconv"
-)
+import "fmt"
 
 func main() {
-	var firstOp, secondOp, op string
-	if _, err := fmt.Scanln(&firstOp); err != nil {
+	var firstNumber, secondNumber int
+	var op string
+	var err error
+	if _, err = fmt.Scan(&firstNumber); err != nil {
 		fmt.Println("Invalid first operand")
 		return
 	}
-	if _, err := fmt.Scanln(&secondOp); err != nil {
+	if _, err = fmt.Scan(&secondNumber); err != nil {
 		fmt.Println("Invalid second operand")
 		return
 	}
-	if _, err := fmt.Scanln(&op); err != nil {
+	if _, err = fmt.Scan(&op); err != nil {
 		fmt.Println("Invalid operation")
-		return
-	}
-	firstNumber, err := strconv.Atoi(firstOp)
-	if err != nil {
-		fmt.Println("Invalid first operand")
-		return
-	}
-	secondNumber, err := strconv.Atoi(secondOp)
-	if err != nil {
-		fmt.Println("Invalid second operand")
 		return
 	}
 	switch op {
