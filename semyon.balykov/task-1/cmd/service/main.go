@@ -4,8 +4,8 @@ import "fmt"
 
 func main() {
 	var (
-		a int
-		b int
+		a         int
+		b         int
 		operation string
 	)
 	_, err := fmt.Scan(&a)
@@ -39,6 +39,7 @@ func main() {
 			return
 		}
 		fmt.Println(a / b)
+		
 	default:
 		fmt.Println("Invalid operation")
 	}
