@@ -5,8 +5,8 @@ import "fmt"
 func main() {
 	var (
 		first, second int
-		op string
-		err error
+		op            string
+		err           error
 	)
 
 	if _, err = fmt.Scan(&first); err != nil {
