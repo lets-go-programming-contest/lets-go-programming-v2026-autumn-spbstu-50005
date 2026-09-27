@@ -3,45 +3,41 @@ package main
 import "fmt"
 
 func main() {
-	var firstNum, secNum int
+	var firstNum, secondNum int
 	var operator string
 
-	fmt.Print("Enter first number: ")
 	_, err := fmt.Scan(&firstNum)
 	if err != nil {
 		fmt.Println("Invalid first operand")
 		return
 	}
 
-	fmt.Print("Enter operator (+, -, *, /): ")
-	_, err = fmt.Scan(&operator)
-	if err != nil {
-		fmt.Println("Invalid operator")
-		return
-	}
-
-	fmt.Print("Enter second number: ")
-	_, err = fmt.Scan(&secNum)
+	_, err = fmt.Scan(&secondNum)
 	if err != nil {
 		fmt.Println("Invalid second operand")
 		return
 	}
 
+	_, err = fmt.Scan(&operator)
+	if err != nil {
+		fmt.Println("Invalid operation")
+		return
+	}
+
 	switch operator {
 	case "+":
-		fmt.Println(firstNum + secNum)
+		fmt.Println(firstNum + secondNum)
 	case "-":
-		fmt.Println(firstNum - secNum)
+		fmt.Println(firstNum - secondNum)
 	case "*":
-		fmt.Println(firstNum * secNum)
+		fmt.Println(firstNum * secondNum)
 	case "/":
-		if secNum == 0 {
+		if secondNum == 0 {
 			fmt.Println("Division by zero")
 			return
 		}
-		fmt.Println(firstNum / secNum)
+		fmt.Println(firstNum / secondNum)
 	default:
-		fmt.Println("Invalid operator")
+		fmt.Println("Invalid operation")
 	}
 }
-
