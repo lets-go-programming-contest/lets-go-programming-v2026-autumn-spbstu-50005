@@ -3,7 +3,6 @@ package main
 import "fmt"
 
 func main() {
-
 	var x, y int
 	var operator string
 
