@@ -1,9 +1,19 @@
 package main
-import "fmt"
+
+import (
+	"fmt"
+)
+
 func main() {
 	var a, b int
 	var op string
-	fmt.Scan(&a, &op, &b)
+
+	_, err := fmt.Scan(&a, &op, &b)
+	if err != nil {
+		fmt.Println("Invalid operation")
+		return
+	}
+
 	switch op {
 	case "+":
 		fmt.Println(a + b)
