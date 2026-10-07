@@ -1,7 +1,5 @@
 package main
-
 import "fmt"
-
 func main() {
 	var a, b int
 	var op string
@@ -19,4 +17,3 @@ func main() {
 		fmt.Println(a / b)
 	}
 }
-
