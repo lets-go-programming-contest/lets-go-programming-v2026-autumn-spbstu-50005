@@ -5,22 +5,26 @@ import (
 )
 
 func main() {
-	var n, k int
-	fmt.Scan(&n, &k)
+	var departmentCount, employeeCount int
+	if _, err := fmt.Scan(&departmentCount, &employeeCount); err != nil {
+		return
+	}
 
-	for i := 0; i < n; i++ {
+	for departmentIdx := 0; departmentIdx < departmentCount; departmentIdx++ {
 		minTemp := 15
 		maxTemp := 30
 
-		for j := 0; j < k; j++ {
-			var op string
-			var t int
-			fmt.Scan(&op, &t)
+		for employeeIdx := 0; employeeIdx < employeeCount; employeeIdx++ {
+			var operator string
+			var temperature int
+			if _, err := fmt.Scan(&operator, &temperature); err != nil {
+				return
+			}
 
-			if op == ">=" && t > minTemp {
-				minTemp = t
-			} else if op == "<=" && t < maxTemp {
-				maxTemp = t
+			if operator == ">=" && temperature > minTemp {
+				minTemp = temperature
+			} else if operator == "<=" && temperature < maxTemp {
+				maxTemp = temperature
 			}
 
 			if minTemp <= maxTemp {
