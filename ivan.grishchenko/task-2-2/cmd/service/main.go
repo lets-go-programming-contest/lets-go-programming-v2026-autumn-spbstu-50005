@@ -5,19 +5,18 @@ import (
 	"fmt"
 )
 
-// IntMaxHeap реализует max-heap для целых чисел.
 type IntMaxHeap []int
 
-func (h IntMaxHeap) Len() int {
-	return len(h)
+func (h *IntMaxHeap) Len() int {
+	return len(*h)
 }
 
-func (h IntMaxHeap) Less(i, j int) bool {
-	return h[i] > h[j]
+func (h *IntMaxHeap) Less(i, j int) bool {
+	return (*h)[i] > (*h)[j]
 }
 
-func (h IntMaxHeap) Swap(i, j int) {
-	h[i], h[j] = h[j], h[i]
+func (h *IntMaxHeap) Swap(i, j int) {
+	(*h)[i], (*h)[j] = (*h)[j], (*h)[i]
 }
 
 func (h *IntMaxHeap) Push(x any) {
@@ -72,7 +71,7 @@ func main() {
 
 	var chosenRating int
 
-	for rankIdx := 0; rankIdx < targetRank; rankIdx++ {
+	for range targetRank {
 		popVal := heap.Pop(maxHeap)
 
 		val, ok := popVal.(int)
