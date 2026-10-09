@@ -4,38 +4,67 @@ import (
 	"fmt"
 )
 
-func main() {
-	var deptCount int
-	var empCount int
+const (
+	defaultMinTemp = 15
+	defaultMaxTemp = 30
+	notFoundValue  = -1
+	opGte          = ">="
+	opLte          = "<="
+)
 
-	if _, err := fmt.Scan(&deptCount, &empCount); err != nil {
+func updateRange(currMin, currMax, val int, op string) (int, int) {
+	newMin, newMax := currMin, currMax
+
+	if op == opGte && val > newMin {
+		newMin = val
+	}
+
+	if op == opLte && val < newMax {
+		newMax = val
+	}
+
+	return newMin, newMax
+}
+
+func main() {
+	var totalDepts int
+
+	if _, err := fmt.Scan(&totalDepts); err != nil {
+		fmt.Println("Error reading departments:", err)
+
 		return
 	}
 
-	for range deptCount {
-		minTemp := 15
-		maxTemp := 30
+	for range totalDepts {
+		var totalEmps int
 
-		for range empCount {
-			var operator string
-			var temperature int
+		if _, err := fmt.Scan(&totalEmps); err != nil {
+			fmt.Println("Error reading employees:", err)
 
-			if _, err := fmt.Scan(&operator, &temperature); err != nil {
+			return
+		}
+
+		minTemp := defaultMinTemp
+		maxTemp := defaultMaxTemp
+
+		for range totalEmps {
+			var (
+				cond string
+				val  int
+			)
+
+			if _, err := fmt.Scan(&cond, &val); err != nil {
+				fmt.Println("Error reading condition:", err)
+
 				return
 			}
 
-			if operator == ">=" && temperature > minTemp {
-				minTemp = temperature
-			}
-
-			if operator == "<=" && temperature < maxTemp {
-				maxTemp = temperature
-			}
+			minTemp, maxTemp = updateRange(minTemp, maxTemp, val, cond)
 
 			if minTemp <= maxTemp {
-				_, _ = fmt.Println(minTemp)
+				fmt.Println(minTemp)
 			} else {
-				_, _ = fmt.Println(-1)
+				fmt.Println(notFoundValue)
 			}
 		}
 	}
