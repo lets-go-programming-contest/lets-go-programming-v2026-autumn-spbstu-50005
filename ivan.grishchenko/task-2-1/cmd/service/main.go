@@ -12,14 +12,14 @@ const (
 	opLte          = "<="
 )
 
-func updateRange(currMin, currMax, val int, op string) (int, int) {
+func updateRange(currMin, currMax, val int, operator string) (int, int) {
 	newMin, newMax := currMin, currMax
 
-	if op == opGte && val > newMin {
+	if operator == opGte && val > newMin {
 		newMin = val
 	}
 
-	if op == opLte && val < newMax {
+	if operator == opLte && val < newMax {
 		newMax = val
 	}
 
