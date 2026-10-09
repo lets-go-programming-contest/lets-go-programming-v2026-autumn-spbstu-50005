@@ -1,14 +1,21 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 )
 
 func main() {
+	reader := bufio.NewReader(os.Stdin)
+	writer := bufio.NewWriter(os.Stdout)
+
+	defer writer.Flush()
+
 	var depts, emps int
 
 	for {
-		if _, err := fmt.Scan(&depts, &emps); err != nil {
+		if _, err := fmt.Fscan(reader, &depts, &emps); err != nil {
 			break
 		}
 
@@ -22,7 +29,7 @@ func main() {
 					temp int
 				)
 
-				if _, err := fmt.Scan(&cond, &temp); err != nil {
+				if _, err := fmt.Fscan(reader, &cond, &temp); err != nil {
 					return
 				}
 
@@ -35,9 +42,9 @@ func main() {
 				}
 
 				if minTemp <= maxTemp {
-					fmt.Println(minTemp)
+					fmt.Fprintln(writer, minTemp)
 				} else {
-					fmt.Println(-1)
+					fmt.Fprintln(writer, -1)
 				}
 			}
 		}
