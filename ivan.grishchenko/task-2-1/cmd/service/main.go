@@ -1,64 +1,41 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"strconv"
 )
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Split(bufio.ScanWords)
+	var deptCount int
+	var empCount int
 
-	for scanner.Scan() {
-		depts, err := strconv.Atoi(scanner.Text())
-		if err != nil {
-			break
-		}
+	if _, err := fmt.Scan(&deptCount, &empCount); err != nil {
+		return
+	}
 
-		if !scanner.Scan() {
-			break
-		}
+	for range deptCount {
+		minTemp := 15
+		maxTemp := 30
 
-		emps, err := strconv.Atoi(scanner.Text())
-		if err != nil {
-			break
-		}
+		for range empCount {
+			var operator string
+			var temperature int
 
-		for range depts {
-			minTemp := 15
-			maxTemp := 30
+			if _, err := fmt.Scan(&operator, &temperature); err != nil {
+				return
+			}
 
-			for range emps {
-				if !scanner.Scan() {
-					return
-				}
+			if operator == ">=" && temperature > minTemp {
+				minTemp = temperature
+			}
 
-				cond := scanner.Text()
+			if operator == "<=" && temperature < maxTemp {
+				maxTemp = temperature
+			}
 
-				if !scanner.Scan() {
-					return
-				}
-
-				temp, err := strconv.Atoi(scanner.Text())
-				if err != nil {
-					return
-				}
-
-				if cond == ">=" && temp > minTemp {
-					minTemp = temp
-				}
-
-				if cond == "<=" && temp < maxTemp {
-					maxTemp = temp
-				}
-
-				if minTemp <= maxTemp {
-					_, _ = fmt.Println(minTemp)
-				} else {
-					_, _ = fmt.Println(-1)
-				}
+			if minTemp <= maxTemp {
+				_, _ = fmt.Println(minTemp)
+			} else {
+				_, _ = fmt.Println(-1)
 			}
 		}
 	}
