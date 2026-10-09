@@ -16,8 +16,10 @@ func main() {
 		maxTemp := 30
 
 		for range emps {
-			var cond string
-			var temp int
+			var (
+				cond string
+				temp int
+			)
 
 			if _, err := fmt.Scan(&cond, &temp); err != nil {
 				return
