@@ -1,14 +1,28 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"strconv"
 )
 
 func main() {
-	var depts, emps int
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Split(bufio.ScanWords)
 
-	for {
-		if _, err := fmt.Scan(&depts, &emps); err != nil {
+	for scanner.Scan() {
+		depts, err := strconv.Atoi(scanner.Text())
+		if err != nil {
+			break
+		}
+
+		if !scanner.Scan() {
+			break
+		}
+
+		emps, err := strconv.Atoi(scanner.Text())
+		if err != nil {
 			break
 		}
 
@@ -17,13 +31,19 @@ func main() {
 			maxTemp := 30
 
 			for range emps {
-				var (
-					cond string
-					temp int
-				)
+				if !scanner.Scan() {
+					return
+				}
 
-				if _, err := fmt.Scan(&cond, &temp); err != nil {
-					break
+				cond := scanner.Text()
+
+				if !scanner.Scan() {
+					return
+				}
+
+				temp, err := strconv.Atoi(scanner.Text())
+				if err != nil {
+					return
 				}
 
 				if cond == ">=" && temp > minTemp {
