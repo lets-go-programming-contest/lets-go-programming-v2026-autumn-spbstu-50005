@@ -9,20 +9,25 @@ import (
 
 type MaxHeap []int
 
-func (h MaxHeap) Len() int {
-	return len(h)
+func (h *MaxHeap) Len() int {
+	return len(*h)
 }
 
-func (h MaxHeap) Less(i, j int) bool {
-	return h[i] > h[j]
+func (h *MaxHeap) Less(i, j int) bool {
+	return (*h)[i] > (*h)[j]
 }
 
-func (h MaxHeap) Swap(i, j int) {
-	h[i], h[j] = h[j], h[i]
+func (h *MaxHeap) Swap(i, j int) {
+	(*h)[i], (*h)[j] = (*h)[j], (*h)[i]
 }
 
 func (h *MaxHeap) Push(value any) {
-	*h = append(*h, value.(int))
+	number, ok := value.(int)
+	if !ok {
+		return
+	}
+
+	*h = append(*h, number)
 }
 
 func (h *MaxHeap) Pop() any {
@@ -66,7 +71,12 @@ func main() {
 	var answer int
 
 	for range position {
-		answer = heap.Pop(&ratings).(int)
+		number, ok := heap.Pop(&ratings).(int)
+		if !ok {
+			returnпше
+		}
+
+		answer = number
 	}
 
 	fmt.Println(answer)
