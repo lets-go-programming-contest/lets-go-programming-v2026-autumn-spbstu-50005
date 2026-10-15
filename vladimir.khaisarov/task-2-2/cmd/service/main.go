@@ -73,7 +73,7 @@ func main() {
 	for range position {
 		number, ok := heap.Pop(&ratings).(int)
 		if !ok {
-			returnпше
+			return
 		}
 
 		answer = number
