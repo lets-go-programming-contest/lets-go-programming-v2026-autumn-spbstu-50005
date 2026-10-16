@@ -18,8 +18,10 @@ func readLine(scanner *bufio.Scanner) (string, error) {
 		if err := scanner.Err(); err != nil {
 			return "", fmt.Errorf("Error: failed to read line: %w", err)
 		}
+
 		return "", fmt.Errorf("Error: unexpected end of input")
 	}
+
 	return strings.TrimSpace(scanner.Text()), nil
 }
 
@@ -28,26 +30,33 @@ func readInt(scanner *bufio.Scanner) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	integer, err := strconv.Atoi(line)
 	if err != nil {
 		return 0, fmt.Errorf("Error: invalid integer %q: %w", line, err)
 	}
+
 	return integer, nil
 }
 
 func parsePreference(line string) (Preference, error) {
 	parts := strings.Fields(line)
+
 	if len(parts) != 2 {
 		return Preference{}, fmt.Errorf("Error: invalid preference format %q", line)
 	}
+
 	op := parts[0]
+
 	if op != "<=" && op != ">=" {
 		return Preference{}, fmt.Errorf("Error: unknown operator %q", op)
 	}
+
 	val, err := strconv.Atoi(parts[1])
 	if err != nil {
 		return Preference{}, fmt.Errorf("Error: invalid temperature value %q: %w", parts[1], err)
 	}
+
 	return Preference{Operand: op, Degree: val}, nil
 }
 
@@ -55,15 +64,21 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	var err error
+
 	var departments int
+
 	var workers int
+
 	var line string
+
 	var pref Preference
+
 	var low, high int
 
 	departments, err = readInt(scanner)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
+
 		return
 	}
 
@@ -73,6 +88,7 @@ func main() {
 		workers, err = readInt(scanner)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
+
 			return
 		}
 
@@ -80,12 +96,14 @@ func main() {
 			line, err = readLine(scanner)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
+
 				return
 			}
 
 			pref, err = parsePreference(line)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
+
 				return
 			}
 
