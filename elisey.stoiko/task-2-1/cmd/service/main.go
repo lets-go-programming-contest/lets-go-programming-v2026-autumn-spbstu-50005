@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 )
@@ -11,6 +12,11 @@ const (
 	noValidTemperature = -1
 	lessOrEqual        = "<="
 	greaterOrEqual     = ">="
+)
+
+var (
+	ErrInvalidOperator    = errors.New("invalid operator")
+	ErrNoValidTemperature = errors.New("no suitable temperature")
 )
 
 type bounds struct {
@@ -24,7 +30,7 @@ func (b *bounds) change(sign string, temp int) error {
 	case greaterOrEqual:
 		b.left = max(b.left, temp)
 	default:
-		return fmt.Errorf("invalid operator: %q", sign)
+		return fmt.Errorf("%w: %q", ErrInvalidOperator, sign)
 	}
 
 	return nil
@@ -32,7 +38,7 @@ func (b *bounds) change(sign string, temp int) error {
 
 func (b *bounds) optimal() (int, error) {
 	if b.left > b.right {
-		return 0, fmt.Errorf("no suitable temperature")
+		return 0, ErrNoValidTemperature
 	}
 
 	return b.left, nil
