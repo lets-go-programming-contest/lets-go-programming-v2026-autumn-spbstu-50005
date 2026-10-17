@@ -1,46 +1,71 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 const (
-	minTemp        = 15
-	maxTemp        = 30
-	errorCode      = -1
-	lessOrEqual    = "<="
-	greaterOrEqual = ">="
+	minTemp            = 15
+	maxTemp            = 30
+	noValidTemperature = -1
+	lessOrEqual        = "<="
+	greaterOrEqual     = ">="
 )
 
 type bounds struct {
 	left, right int
 }
 
-func (b *bounds) change(sign string, temp int) {
+func (b *bounds) change(sign string, temp int) error {
 	switch sign {
 	case lessOrEqual:
 		b.right = min(b.right, temp)
 	case greaterOrEqual:
 		b.left = max(b.left, temp)
+	default:
+		return fmt.Errorf("invalid operator: %q", sign)
 	}
+
+	return nil
 }
 
-func (b *bounds) check() bool {
-	return b.left <= b.right
+func (b *bounds) optimal() (int, error) {
+	if b.left > b.right {
+		return 0, fmt.Errorf("no suitable temperature")
+	}
+
+	return b.left, nil
 }
 
 func main() {
-	var departments, workers int
+	var departments int
 
 	if _, err := fmt.Scan(&departments); err != nil {
-		fmt.Println("Error: invalid departments count:", err)
+		fmt.Fprintln(os.Stderr, "Error: invalid departments count:", err)
+
+		return
+	}
+
+	if departments < 1 || departments > 1000 {
+		fmt.Fprintln(os.Stderr, "Error: departments count must be between 1 and 1000")
 
 		return
 	}
 
 	for range departments {
-		temperatureBounds := bounds{minTemp, maxTemp}
+		temperatureBounds := bounds{left: minTemp, right: maxTemp}
+
+		var workers int
 
 		if _, err := fmt.Scan(&workers); err != nil {
-			fmt.Println("Error: invalid workers count:", err)
+			fmt.Fprintln(os.Stderr, "Error: invalid workers count:", err)
+
+			return
+		}
+
+		if workers < 1 || workers > 1000 {
+			fmt.Fprintln(os.Stderr, "Error: workers count must be between 1 and 1000")
 
 			return
 		}
@@ -52,17 +77,22 @@ func main() {
 			)
 
 			if _, err := fmt.Scan(&sign, &temp); err != nil {
-				fmt.Println("Error: invalid state:", err)
+				fmt.Fprintln(os.Stderr, "Error: invalid state:", err)
 
 				return
 			}
 
-			temperatureBounds.change(sign, temp)
+			if err := temperatureBounds.change(sign, temp); err != nil {
+				fmt.Fprintln(os.Stderr, "Error:", err)
 
-			if temperatureBounds.check() {
-				fmt.Println(temperatureBounds.left)
+				return
+			}
+
+			temp, err := temperatureBounds.optimal()
+			if err != nil {
+				fmt.Println(noValidTemperature)
 			} else {
-				fmt.Println(errorCode)
+				fmt.Println(temp)
 			}
 		}
 	}
