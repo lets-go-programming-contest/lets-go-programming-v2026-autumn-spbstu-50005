@@ -70,6 +70,7 @@ func (tr *TemperatureRange) GetOptimal() int {
 	if tr.low > tr.high {
 		return invalidTemp
 	}
+
 	return tr.low
 }
 
@@ -121,7 +122,7 @@ func parsePreference(line string) (Preference, error) {
 }
 
 func processDepartment(scanner *bufio.Scanner) error {
-	tr := NewTemperatureRange()
+	tempRange := NewTemperatureRange()
 
 	workers, err := readInt(scanner)
 	if err != nil {
@@ -139,11 +140,11 @@ func processDepartment(scanner *bufio.Scanner) error {
 			return err
 		}
 
-		if err := tr.Update(pref.Operand, pref.Degree); err != nil {
+		if err := tempRange.Update(pref.Operand, pref.Degree); err != nil {
 			return err
 		}
 
-		fmt.Println(tr.GetOptimal())
+		fmt.Println(tempRange.GetOptimal())
 	}
 
 	return nil
