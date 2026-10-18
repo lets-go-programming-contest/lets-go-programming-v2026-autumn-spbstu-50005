@@ -9,7 +9,15 @@ import (
 	"strings"
 )
 
-const expectedPartsCount = 2
+const (
+	minTemperature = 15
+	maxTemperature = 30
+	expectedParts  = 2
+	invalidTemp    = -1
+
+	operandGreaterOrEqual = ">="
+	operandLessOrEqual    = "<="
+)
 
 var (
 	ErrUnexpectedEOF      = errors.New("unexpected end of input")
@@ -17,11 +25,52 @@ var (
 	ErrUnknownOperator    = errors.New("unknown operator")
 	ErrInvalidInteger     = errors.New("invalid integer")
 	ErrInvalidTemperature = errors.New("invalid temperature value")
+	ErrOutOfRange         = errors.New("temperature out of range")
 )
 
 type Preference struct {
 	Operand string
 	Degree  int
+}
+
+type TemperatureRange struct {
+	low  int
+	high int
+}
+
+func NewTemperatureRange() *TemperatureRange {
+	return &TemperatureRange{
+		low:  minTemperature,
+		high: maxTemperature,
+	}
+}
+
+func (tr *TemperatureRange) Update(operand string, degree int) error {
+	if degree < minTemperature || degree > maxTemperature {
+		return fmt.Errorf("%w: %d", ErrOutOfRange, degree)
+	}
+
+	switch operand {
+	case operandGreaterOrEqual:
+		if degree > tr.low {
+			tr.low = degree
+		}
+	case operandLessOrEqual:
+		if degree < tr.high {
+			tr.high = degree
+		}
+	default:
+		return fmt.Errorf("%w: %q", ErrUnknownOperator, operand)
+	}
+
+	return nil
+}
+
+func (tr *TemperatureRange) GetOptimal() int {
+	if tr.low > tr.high {
+		return invalidTemp
+	}
+	return tr.low
 }
 
 func readLine(scanner *bufio.Scanner) (string, error) {
@@ -44,7 +93,7 @@ func readInt(scanner *bufio.Scanner) (int, error) {
 
 	integer, err := strconv.Atoi(line)
 	if err != nil {
-		return 0, fmt.Errorf("%w: %q", ErrInvalidInteger, line)
+		return 0, fmt.Errorf("%w: %q: %w", ErrInvalidInteger, line, err)
 	}
 
 	return integer, nil
@@ -53,26 +102,26 @@ func readInt(scanner *bufio.Scanner) (int, error) {
 func parsePreference(line string) (Preference, error) {
 	parts := strings.Fields(line)
 
-	if len(parts) != expectedPartsCount {
+	if len(parts) != expectedParts {
 		return Preference{}, fmt.Errorf("%w: %q", ErrInvalidPreference, line)
 	}
 
 	operand := parts[0]
 
-	if operand != "<=" && operand != ">=" {
+	if operand != operandGreaterOrEqual && operand != operandLessOrEqual {
 		return Preference{}, fmt.Errorf("%w: %q", ErrUnknownOperator, operand)
 	}
 
 	val, err := strconv.Atoi(parts[1])
 	if err != nil {
-		return Preference{}, fmt.Errorf("%w: %q", ErrInvalidTemperature, parts[1])
+		return Preference{}, fmt.Errorf("%w: %q: %w", ErrInvalidTemperature, parts[1], err)
 	}
 
 	return Preference{Operand: operand, Degree: val}, nil
 }
 
 func processDepartment(scanner *bufio.Scanner) error {
-	low, high := 15, 30
+	tr := NewTemperatureRange()
 
 	workers, err := readInt(scanner)
 	if err != nil {
@@ -90,22 +139,11 @@ func processDepartment(scanner *bufio.Scanner) error {
 			return err
 		}
 
-		switch pref.Operand {
-		case "<=":
-			if pref.Degree < high {
-				high = pref.Degree
-			}
-		case ">=":
-			if pref.Degree > low {
-				low = pref.Degree
-			}
+		if err := tr.Update(pref.Operand, pref.Degree); err != nil {
+			return err
 		}
 
-		if low > high {
-			fmt.Println(-1)
-		} else {
-			fmt.Println(low)
-		}
+		fmt.Println(tr.GetOptimal())
 	}
 
 	return nil
