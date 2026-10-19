@@ -3,19 +3,22 @@ package main
 import "fmt"
 
 const (
-	minTemp = 15
-	maxTemp = 30
+	minTemp       = 15
+	maxTemp       = 30
+	lessThan      = "<="
+	moreThan      = ">="
+	noConcessions = -1
 )
 
 func ChangeRange(minTemperature, maxTemperature, value int, operator string) (int, int) {
 	newMin := minTemperature
 	newMax := maxTemperature
 
-	if operator == ">=" && value > newMin {
+	if operator == moreThan && value > newMin {
 		newMin = value
 	}
 
-	if operator == "<=" && value < newMax {
+	if operator == lessThan && value < newMax {
 		newMax = value
 	}
 
@@ -54,7 +57,7 @@ func main() {
 			if currentMin <= currentMax {
 				fmt.Println(currentMin)
 			} else {
-				fmt.Println(-1)
+				fmt.Println(noConcessions)
 			}
 		}
 	}
