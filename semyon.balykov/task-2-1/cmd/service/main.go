@@ -105,9 +105,7 @@ func processDepartment(reader io.Reader, writer io.Writer) error {
 			return err
 		}
 
-		if _, err := fmt.Fprintln(writer, bounds.optimalTemperature()); err != nil {
-			return fmt.Errorf("failed to write temperature: %w", err)
-		}
+		fmt.Fprintln(writer, bounds.optimalTemperature())
 	}
 
 	return nil
@@ -130,6 +128,6 @@ func run(reader io.Reader, writer io.Writer) error {
 
 func main() {
 	if err := run(os.Stdin, os.Stdout); err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, err)
 	}
 }
