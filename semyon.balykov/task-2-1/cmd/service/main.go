@@ -83,10 +83,15 @@ func readCount(reader io.Reader, name string) (int, error) {
 	return count, nil
 }
 
-func processDepartment(reader io.Reader, writer io.Writer) error {
-	workerCount, err := readCount(reader, "workers")
-	if err != nil {
-		return err
+func processDepartment() error {
+	var workerCount int
+
+	if _, err := fmt.Scan(&workerCount); err != nil {
+		return fmt.Errorf("failed to read workers count: %w", err)
+	}
+
+	if workerCount < minCount || workerCount > maxCount {
+		return errInvalidCount
 	}
 
 	bounds := newTemperatureBounds()
@@ -97,7 +102,7 @@ func processDepartment(reader io.Reader, writer io.Writer) error {
 			temperature int
 		)
 
-		if _, err := fmt.Fscan(reader, &operator, &temperature); err != nil {
+		if _, err := fmt.Scan(&operator, &temperature); err != nil {
 			return fmt.Errorf("failed to read temperature condition: %w", err)
 		}
 
@@ -105,7 +110,7 @@ func processDepartment(reader io.Reader, writer io.Writer) error {
 			return err
 		}
 
-		fmt.Fprintln(writer, bounds.optimalTemperature())
+		fmt.Println(bounds.optimalTemperature())
 	}
 
 	return nil
