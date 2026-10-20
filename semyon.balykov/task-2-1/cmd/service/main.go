@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 )
 
@@ -63,26 +62,6 @@ func (b *temperatureBounds) optimalTemperature() int {
 	return b.min
 }
 
-func readCount(reader io.Reader, name string) (int, error) {
-	var count int
-
-	if _, err := fmt.Fscan(reader, &count); err != nil {
-		return 0, fmt.Errorf("failed to read %s count: %w", name, err)
-	}
-
-	if count < minCount || count > maxCount {
-		return 0, fmt.Errorf(
-			"%w: %s count must be between %d and %d",
-			errInvalidCount,
-			name,
-			minCount,
-			maxCount,
-		)
-	}
-
-	return count, nil
-}
-
 func processDepartment() error {
 	var workerCount int
 
@@ -91,7 +70,12 @@ func processDepartment() error {
 	}
 
 	if workerCount < minCount || workerCount > maxCount {
-		return errInvalidCount
+		return fmt.Errorf(
+			"%w: workers count must be between %d and %d",
+			errInvalidCount,
+			minCount,
+			maxCount,
+		)
 	}
 
 	bounds := newTemperatureBounds()
@@ -110,21 +94,8 @@ func processDepartment() error {
 			return err
 		}
 
-		fmt.Println(bounds.optimalTemperature())
-	}
-
-	return nil
-}
-
-func run(reader io.Reader, writer io.Writer) error {
-	departmentCount, err := readCount(reader, "departments")
-	if err != nil {
-		return err
-	}
-
-	for range departmentCount {
-		if err := processDepartment(reader, writer); err != nil {
-			return err
+		if _, err := fmt.Println(bounds.optimalTemperature()); err != nil {
+			return fmt.Errorf("failed to print temperature: %w", err)
 		}
 	}
 
@@ -135,18 +106,34 @@ func main() {
 	var departmentCount int
 
 	if _, err := fmt.Scan(&departmentCount); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		if _, printErr := fmt.Fprintln(os.Stderr, err); printErr != nil {
+			return
+		}
+
 		return
 	}
 
 	if departmentCount < minCount || departmentCount > maxCount {
-		fmt.Fprintln(os.Stderr, errInvalidCount)
+		err := fmt.Errorf(
+			"%w: departments count must be between %d and %d",
+			errInvalidCount,
+			minCount,
+			maxCount,
+		)
+
+		if _, printErr := fmt.Fprintln(os.Stderr, err); printErr != nil {
+			return
+		}
+
 		return
 	}
 
 	for range departmentCount {
 		if err := processDepartment(); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			if _, printErr := fmt.Fprintln(os.Stderr, err); printErr != nil {
+				return
+			}
+
 			return
 		}
 	}
