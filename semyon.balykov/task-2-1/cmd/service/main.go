@@ -55,7 +55,7 @@ func (b *temperatureBounds) update(operator string, temperature int) error {
 	return nil
 }
 
-func (b temperatureBounds) optimalTemperature() int {
+func (b *temperatureBounds) optimalTemperature() int {
 	if b.min > b.max {
 		return noTemperature
 	}
@@ -105,7 +105,9 @@ func processDepartment(reader io.Reader, writer io.Writer) error {
 			return err
 		}
 
-		fmt.Fprintln(writer, bounds.optimalTemperature())
+		if _, err := fmt.Fprintln(writer, bounds.optimalTemperature()); err != nil {
+			return fmt.Errorf("failed to write temperature: %w", err)
+		}
 	}
 
 	return nil
@@ -128,6 +130,6 @@ func run(reader io.Reader, writer io.Writer) error {
 
 func main() {
 	if err := run(os.Stdin, os.Stdout); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		_, _ = fmt.Fprintln(os.Stderr, err)
 	}
 }
