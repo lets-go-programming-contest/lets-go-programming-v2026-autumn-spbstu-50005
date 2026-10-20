@@ -127,7 +127,22 @@ func run(reader io.Reader, writer io.Writer) error {
 }
 
 func main() {
-	if err := run(os.Stdin, os.Stdout); err != nil {
+	var departmentCount int
+
+	if _, err := fmt.Scan(&departmentCount); err != nil {
 		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+
+	if departmentCount < minCount || departmentCount > maxCount {
+		fmt.Fprintln(os.Stderr, errInvalidCount)
+		return
+	}
+
+	for range departmentCount {
+		if err := processDepartment(); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return
+		}
 	}
 }
