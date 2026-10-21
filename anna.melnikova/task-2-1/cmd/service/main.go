@@ -39,8 +39,8 @@ func NewDepartmentTracker() *DepartmentTracker {
 	}
 }
 
-func (d *DepartmentTracker) Apply(op string, temp int) (int, error) {
-	switch op {
+func (d *DepartmentTracker) Apply(operator string, temp int) (int, error) {
+	switch operator {
 	case opGreaterOrEqual:
 		if temp > d.minTemp {
 			d.minTemp = temp
@@ -50,22 +50,25 @@ func (d *DepartmentTracker) Apply(op string, temp int) (int, error) {
 			d.maxTemp = temp
 		}
 	default:
-		return 0, fmt.Errorf("%w: %q", ErrUnknownOperator, op)
+		return 0, fmt.Errorf("%w: %q", ErrUnknownOperator, operator)
 	}
 
 	if d.minTemp <= d.maxTemp {
 		return d.minTemp, nil
 	}
+
 	return noSolution, nil
 }
 
 func nextWord(scanner *bufio.Scanner) (string, error) {
 	if !scanner.Scan() {
 		if err := scanner.Err(); err != nil {
-			return "", err
+			return "", fmt.Errorf("scanner error: %w", err)
 		}
+
 		return "", ErrUnexpectedEOF
 	}
+
 	return scanner.Text(), nil
 }
 
@@ -75,15 +78,17 @@ func parseCondition(scanner *bufio.Scanner) (string, int, error) {
 		return "", 0, fmt.Errorf("%w: %w", ErrInvalidCondition, err)
 	}
 
-	var op string
-	var numStr string
+	var (
+		operator string
+		numStr   string
+	)
 
 	switch {
 	case strings.HasPrefix(token, opGreaterOrEqual):
-		op = opGreaterOrEqual
+		operator = opGreaterOrEqual
 		numStr = strings.TrimPrefix(token, opGreaterOrEqual)
 	case strings.HasPrefix(token, opLessOrEqual):
-		op = opLessOrEqual
+		operator = opLessOrEqual
 		numStr = strings.TrimPrefix(token, opLessOrEqual)
 	default:
 		return "", 0, fmt.Errorf("%w: %q", ErrInvalidCondition, token)
@@ -93,7 +98,7 @@ func parseCondition(scanner *bufio.Scanner) (string, int, error) {
 	if numStr == "" {
 		numStr, err = nextWord(scanner)
 		if err != nil {
-			return "", 0, fmt.Errorf("%w: expected number after %s: %w", ErrInvalidCondition, op, err)
+			return "", 0, fmt.Errorf("%w: expected number after %s: %w", ErrInvalidCondition, operator, err)
 		}
 	}
 
@@ -102,7 +107,43 @@ func parseCondition(scanner *bufio.Scanner) (string, int, error) {
 		return "", 0, fmt.Errorf("%w: %q: %w", ErrInvalidTemperature, numStr, err)
 	}
 
-	return op, temp, nil
+	return operator, temp, nil
+}
+
+func processDepartment(scanner *bufio.Scanner, writer *bufio.Writer, deptIdx int) error {
+	tokenK, err := nextWord(scanner)
+	if err != nil {
+		return fmt.Errorf("department #%d: failed to read K: %w", deptIdx+1, err)
+	}
+
+	numEmployees, err := strconv.Atoi(tokenK)
+	if err != nil || numEmployees < 0 {
+		return fmt.Errorf("%w: K=%q: %w", ErrInvalidInteger, tokenK, err)
+	}
+
+	tracker := NewDepartmentTracker()
+
+	for range numEmployees {
+		operator, temp, err := parseCondition(scanner)
+		if err != nil {
+			return fmt.Errorf("department #%d: %w", deptIdx+1, err)
+		}
+
+		optimalTemp, err := tracker.Apply(operator, temp)
+		if err != nil {
+			return err
+		}
+
+		if _, err := writer.WriteString(strconv.Itoa(optimalTemp)); err != nil {
+			return fmt.Errorf("write error: %w", err)
+		}
+
+		if err := writer.WriteByte('\n'); err != nil {
+			return fmt.Errorf("write error: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func run(r io.Reader, w io.Writer) error {
@@ -110,13 +151,13 @@ func run(r io.Reader, w io.Writer) error {
 	scanner.Split(bufio.ScanWords)
 
 	writer := bufio.NewWriter(w)
-	defer writer.Flush()
 
 	tokenN, err := nextWord(scanner)
 	if err != nil {
 		if errors.Is(err, ErrUnexpectedEOF) {
 			return nil
 		}
+
 		return fmt.Errorf("failed to read N: %w", err)
 	}
 
@@ -125,37 +166,14 @@ func run(r io.Reader, w io.Writer) error {
 		return fmt.Errorf("%w: N=%q: %w", ErrInvalidInteger, tokenN, err)
 	}
 
-	for i := 0; i < numDepartments; i++ {
-		tokenK, err := nextWord(scanner)
-		if err != nil {
-			return fmt.Errorf("department #%d: failed to read K: %w", i+1, err)
+	for i := range numDepartments {
+		if err := processDepartment(scanner, writer, i); err != nil {
+			return err
 		}
+	}
 
-		numEmployees, err := strconv.Atoi(tokenK)
-		if err != nil || numEmployees < 0 {
-			return fmt.Errorf("%w: K=%q: %w", ErrInvalidInteger, tokenK, err)
-		}
-
-		tracker := NewDepartmentTracker()
-
-		for j := 0; j < numEmployees; j++ {
-			op, temp, err := parseCondition(scanner)
-			if err != nil {
-				return fmt.Errorf("department #%d, employee #%d: %w", i+1, j+1, err)
-			}
-
-			optimalTemp, err := tracker.Apply(op, temp)
-			if err != nil {
-				return err
-			}
-
-			if _, err := writer.WriteString(strconv.Itoa(optimalTemp)); err != nil {
-				return fmt.Errorf("write error: %w", err)
-			}
-			if err := writer.WriteByte('\n'); err != nil {
-				return fmt.Errorf("write error: %w", err)
-			}
-		}
+	if err := writer.Flush(); err != nil {
+		return fmt.Errorf("flush error: %w", err)
 	}
 
 	return nil
