@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 )
@@ -13,6 +14,8 @@ const (
 	noConcessions = -1
 )
 
+var ErrUnknownOperator = errors.New("unknown temperature operator")
+
 type TemperatureRange struct {
 	minimum int
 	maximum int
@@ -20,7 +23,7 @@ type TemperatureRange struct {
 
 func (t *TemperatureRange) Update(value int, operator string) error {
 	if operator != moreThan && operator != lessThan {
-		return fmt.Errorf("unknown temperature operator: %q", operator)
+		return fmt.Errorf("%w: %q", ErrUnknownOperator, operator)
 	}
 
 	if operator == moreThan && value > t.minimum {
