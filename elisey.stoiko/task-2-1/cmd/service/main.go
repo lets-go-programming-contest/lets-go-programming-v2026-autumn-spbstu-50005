@@ -53,8 +53,8 @@ func main() {
 		return
 	}
 
-	if departments < 1 || departments > 1000 {
-		fmt.Fprintln(os.Stderr, "Error: departments count must be between 1 and 1000")
+	if departments <= 0 {
+		fmt.Fprintln(os.Stderr, "Error: departments count must be greater than 0")
 
 		return
 	}
@@ -70,8 +70,8 @@ func main() {
 			return
 		}
 
-		if workers < 1 || workers > 1000 {
-			fmt.Fprintln(os.Stderr, "Error: workers count must be between 1 and 1000")
+		if workers <= 0 {
+			fmt.Fprintln(os.Stderr, "Error: workers count must be greater than 0")
 
 			return
 		}
@@ -94,11 +94,11 @@ func main() {
 				return
 			}
 
-			temp, err := temperatureBounds.optimal()
+			optimalTemp, err := temperatureBounds.optimal()
 			if err != nil {
 				fmt.Println(noValidTemperature)
 			} else {
-				fmt.Println(temp)
+				fmt.Println(optimalTemp)
 			}
 		}
 	}
