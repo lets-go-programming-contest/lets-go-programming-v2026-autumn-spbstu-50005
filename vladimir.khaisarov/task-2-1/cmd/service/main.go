@@ -10,19 +10,27 @@ const (
 	noConcessions = -1
 )
 
-func ChangeRange(minTemperature, maxTemperature, value int, operator string) (int, int) {
-	newMin := minTemperature
-	newMax := maxTemperature
+type TemperatureRange struct {
+	minimum int
+	maximum int
+}
 
-	if operator == moreThan && value > newMin {
-		newMin = value
+func (t *TemperatureRange) Update(value int, operator string) {
+	if operator == moreThan && value > t.minimum {
+		t.minimum = value
 	}
 
-	if operator == lessThan && value < newMax {
-		newMax = value
+	if operator == lessThan && value < t.maximum {
+		t.maximum = value
+	}
+}
+
+func (t *TemperatureRange) GetTemperature() int {
+	if t.minimum > t.maximum {
+		return noConcessions
 	}
 
-	return newMin, newMax
+	return t.minimum
 }
 
 func main() {
@@ -39,8 +47,10 @@ func main() {
 			return
 		}
 
-		currentMin := minTemp
-		currentMax := maxTemp
+		temperature := TemperatureRange{
+			minimum: minTemp,
+			maximum: maxTemp,
+		}
 
 		for range workerCount {
 			var (
@@ -52,13 +62,9 @@ func main() {
 				return
 			}
 
-			currentMin, currentMax = ChangeRange(currentMin, currentMax, value, operator)
+			temperature.Update(value, operator)
 
-			if currentMin <= currentMax {
-				fmt.Println(currentMin)
-			} else {
-				fmt.Println(noConcessions)
-			}
+			fmt.Println(temperature.GetTemperature())
 		}
 	}
 }
