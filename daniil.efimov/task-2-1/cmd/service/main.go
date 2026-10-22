@@ -66,7 +66,6 @@ func processDepartment(workers int) error {
 		}
 
 		if err := tempRng.update(sign, temp); err != nil {
-
 			return err
 		}
 
