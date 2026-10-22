@@ -25,6 +25,11 @@ type temperatureBounds struct {
 	max int
 }
 
+type temperatureCondition struct {
+	operator    string
+	temperature int
+}
+
 func newTemperatureBounds() temperatureBounds {
 	return temperatureBounds{
 		min: minTemperature,
@@ -35,12 +40,12 @@ func newTemperatureBounds() temperatureBounds {
 func (b *temperatureBounds) update(operator string, temperature int) error {
 	switch operator {
 	case greaterOrEqual:
-		if temperature > b.min {
+		if temperature >= b.min {
 			b.min = temperature
 		}
 
 	case lessOrEqual:
-		if temperature < b.max {
+		if temperature <= b.max {
 			b.max = temperature
 		}
 
@@ -59,6 +64,17 @@ func (b *temperatureBounds) optimalTemperature() int {
 	return b.min
 }
 
+func readCondition() (temperatureCondition, error) {
+	var condition temperatureCondition
+
+	if _, err := fmt.Scan(&condition.operator, &condition.temperature); err != nil {
+		return temperatureCondition{},
+			fmt.Errorf("failed to read temperature condition: %w", err)
+	}
+
+	return condition, nil
+}
+
 func printTemperature(temperature int) {
 	fmt.Println(temperature)
 }
@@ -71,22 +87,24 @@ func processDepartment() error {
 	}
 
 	if workerCount <= 0 {
-		return fmt.Errorf("%w: workers count must be greater than 0", errInvalidCount)
+		return fmt.Errorf(
+			"%w: workers count must be greater than 0",
+			errInvalidCount,
+		)
 	}
 
 	bounds := newTemperatureBounds()
 
 	for range workerCount {
-		var (
-			operator    string
-			temperature int
-		)
-
-		if _, err := fmt.Scan(&operator, &temperature); err != nil {
-			return fmt.Errorf("failed to read temperature condition: %w", err)
+		condition, err := readCondition()
+		if err != nil {
+			return err
 		}
 
-		if err := bounds.update(operator, temperature); err != nil {
+		if err := bounds.update(
+			condition.operator,
+			condition.temperature,
+		); err != nil {
 			return err
 		}
 
@@ -100,13 +118,20 @@ func main() {
 	var departmentCount int
 
 	if _, err := fmt.Scan(&departmentCount); err != nil {
-		fmt.Fprintln(os.Stderr, "failed to read departments count:", err)
+		fmt.Fprintln(
+			os.Stderr,
+			"failed to read departments count:",
+			err,
+		)
 
 		return
 	}
 
 	if departmentCount <= 0 {
-		fmt.Fprintln(os.Stderr, "departments count must be greater than 0")
+		fmt.Fprintln(
+			os.Stderr,
+			"departments count must be greater than 0",
+		)
 
 		return
 	}
