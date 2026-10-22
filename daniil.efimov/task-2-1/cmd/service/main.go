@@ -25,45 +25,51 @@ type tempRange struct {
 	left, right int
 }
 
-func (tR *tempRange) update(sign string, temp int) error {
+func (tempRng *tempRange) update(sign string, temp int) error {
 	if temp < minTemp || temp > maxTemp {
 		return fmt.Errorf("%w: %d (allowed %d..%d)", ErrTempOutOfRange, temp, minTemp, maxTemp)
 	}
+
 	switch sign {
 	case lessOrEqual:
-		tR.right = min(tR.right, temp)
+		tempRng.right = min(tempRng.right, temp)
 	case greaterOrEqual:
-		tR.left = max(tR.left, temp)
+		tempRng.left = max(tempRng.left, temp)
 	default:
 		return fmt.Errorf("%w: %q", ErrUnknownOperator, sign)
 	}
+
 	return nil
 }
 
-func (tR *tempRange) findOptimalTemp() (int, error) {
-	if tR.left > tR.right {
+func (tempRng *tempRange) findOptimalTemp() (int, error) {
+	if tempRng.left > tempRng.right {
 		return 0, ErrNoSuitableTemp
 	}
-	return tR.left, nil
+
+	return tempRng.left, nil
 }
 
 func processDepartment(workers int) error {
-	var tR tempRange
-	tR.left = minTemp
-	tR.right = maxTemp
+	var tempRng tempRange
+	tempRng.left = minTemp
+	tempRng.right = maxTemp
 
 	for range workers {
 		var (
 			sign string
 			temp int
 		)
+
 		if _, err := fmt.Scan(&sign, &temp); err != nil {
 			return fmt.Errorf("failed to read employee preference: %w", err)
 		}
-		if err := tR.update(sign, temp); err != nil {
+
+		if err := tempRng.update(sign, temp); err != nil {
 			return err
 		}
-		if opt, err := tR.findOptimalTemp(); err != nil {
+
+		if opt, err := tempRng.findOptimalTemp(); err != nil {
 			fmt.Println(noTemp)
 		} else {
 			fmt.Println(opt)
@@ -75,12 +81,16 @@ func processDepartment(workers int) error {
 
 func main() {
 	var departments int
+
 	if _, err := fmt.Scan(&departments); err != nil {
 		fmt.Fprintln(os.Stderr, "Error: failed to read departments count")
+
 		return
 	}
+
 	if departments <= 0 {
 		fmt.Fprintln(os.Stderr, "Error:", ErrInvalidValue)
+
 		return
 	}
 
@@ -90,10 +100,12 @@ func main() {
 			fmt.Fprintln(os.Stderr, "Error: failed to read workers count")
 			return
 		}
+
 		if workers <= 0 {
 			fmt.Fprintln(os.Stderr, "Error:", ErrInvalidValue)
 			return
 		}
+
 		if err := processDepartment(workers); err != nil {
 			fmt.Fprintln(os.Stderr, "Error:", err)
 			return
