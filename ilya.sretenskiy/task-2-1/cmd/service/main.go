@@ -88,6 +88,7 @@ func readConditions() ([]condition, error) {
 	}
 
 	conds := make([]condition, workerCount)
+
 	for workerIndex := range workerCount {
 		var (
 			sign  string
