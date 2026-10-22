@@ -66,6 +66,7 @@ func processDepartment(workers int) error {
 		}
 
 		if err := tempRng.update(sign, temp); err != nil {
+
 			return err
 		}
 
@@ -98,16 +99,19 @@ func main() {
 		var workers int
 		if _, err := fmt.Scan(&workers); err != nil {
 			fmt.Fprintln(os.Stderr, "Error: failed to read workers count")
+
 			return
 		}
 
 		if workers <= 0 {
 			fmt.Fprintln(os.Stderr, "Error:", ErrInvalidValue)
+
 			return
 		}
 
 		if err := processDepartment(workers); err != nil {
 			fmt.Fprintln(os.Stderr, "Error:", err)
+
 			return
 		}
 	}
