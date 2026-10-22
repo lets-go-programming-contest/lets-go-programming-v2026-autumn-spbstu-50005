@@ -88,17 +88,17 @@ func readConditions() ([]condition, error) {
 	}
 
 	conds := make([]condition, workerCount)
-	for i := range workerCount {
+	for workerIndex := range workerCount {
 		var (
 			sign  string
 			value int
 		)
 
 		if _, err := fmt.Scan(&sign, &value); err != nil {
-			return nil, fmt.Errorf("read condition for worker %d: %w", i+1, err)
+			return nil, fmt.Errorf("read condition for worker %d: %w", workerIndex+1, err)
 		}
 
-		conds[i] = condition{
+		conds[workerIndex] = condition{
 			sign:  sign,
 			value: value,
 		}
@@ -143,9 +143,9 @@ func run() error {
 		return err
 	}
 
-	for i := range officeCount {
+	for officeIndex := range officeCount {
 		if err := processOffice(); err != nil {
-			return fmt.Errorf("office %d: %w", i+1, err)
+			return fmt.Errorf("office %d: %w", officeIndex+1, err)
 		}
 	}
 
