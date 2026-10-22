@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 )
@@ -10,13 +11,15 @@ const (
 	maxTemp = 30
 	noTemp  = -1
 
-	maxOffices = 100
+	maxOffices = 1000
 	maxWorkers = 1000
 
 	opAtLeast = ">="
 	opAtMost  = "<="
 	opEqual   = "="
 )
+
+var errInvalidCount = errors.New("invalid count")
 
 type condition struct {
 	sign  string
@@ -60,17 +63,21 @@ func (r *comfortRange) best() int {
 	if r.min > r.max {
 		return noTemp
 	}
+
 	return r.min
 }
 
 func readCount(name string, limit int) (int, error) {
 	var count int
+
 	if _, err := fmt.Scan(&count); err != nil {
 		return 0, fmt.Errorf("read %s count: %w", name, err)
 	}
+
 	if count <= 0 || count > limit {
-		return 0, fmt.Errorf("%s count must be between 1 and %d, got %d", name, limit, count)
+		return 0, fmt.Errorf("%w: %s count must be between 1 and %d, got %d", errInvalidCount, name, limit, count)
 	}
+
 	return count, nil
 }
 
@@ -81,19 +88,22 @@ func readConditions() ([]condition, error) {
 	}
 
 	conds := make([]condition, workerCount)
-	for i := 0; i < workerCount; i++ {
+	for i := range workerCount {
 		var (
 			sign  string
 			value int
 		)
+
 		if _, err := fmt.Scan(&sign, &value); err != nil {
 			return nil, fmt.Errorf("read condition for worker %d: %w", i+1, err)
 		}
+
 		conds[i] = condition{
 			sign:  sign,
 			value: value,
 		}
 	}
+
 	return conds, nil
 }
 
@@ -105,6 +115,7 @@ func solve(conds []condition) []int {
 		r.apply(c.sign, c.value)
 		results[i] = r.best()
 	}
+
 	return results
 }
 
@@ -119,8 +130,10 @@ func processOffice() error {
 	if err != nil {
 		return err
 	}
+
 	results := solve(conds)
 	printResults(results)
+
 	return nil
 }
 
@@ -130,11 +143,12 @@ func run() error {
 		return err
 	}
 
-	for i := 0; i < officeCount; i++ {
+	for i := range officeCount {
 		if err := processOffice(); err != nil {
 			return fmt.Errorf("office %d: %w", i+1, err)
 		}
 	}
+
 	return nil
 }
 
