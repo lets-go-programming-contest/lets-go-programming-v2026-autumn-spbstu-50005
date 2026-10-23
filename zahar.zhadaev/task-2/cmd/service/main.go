@@ -3,67 +3,71 @@ package main
 import "fmt"
 
 const (
-	minTemp        = 15
-	maxTemp        = 30
-	errorCode      = -1
-	lessOrEqual    = "<="
-	greaterOrEqual = ">="
+	defaultMin               = 15
+	defaultMax               = 30
+	signGreaterOrEqual       = ">="
+	signLessOrEqual          = "<="
+	invalidTemperatureResult = -1
 )
 
-type bounds struct {
-	left, right int
-}
-
-func (b *bounds) change(sign string, temp int) {
-	switch sign {
-	case lessOrEqual:
-		b.right = min(b.right, temp)
-	case greaterOrEqual:
-		b.left = max(b.left, temp)
-	}
-}
-
-func (b *bounds) check() bool {
-	return b.left <= b.right
+type TemperatureRange struct {
+	min int
+	max int
 }
 
 func main() {
-	var departments, workers int
+	var testsCount int
 
-	if _, err := fmt.Scan(&departments); err != nil {
-		fmt.Println("Error: invalid departments count:", err)
-
+	_, err := fmt.Scan(&testsCount)
+	if err != nil || testsCount <= 0 {
 		return
 	}
 
-	for range departments {
-		temperatureBounds := bounds{minTemp, maxTemp}
+	for range testsCount {
+		processTest()
+	}
+}
 
-		if _, err := fmt.Scan(&workers); err != nil {
-			fmt.Println("Error: invalid workers count:", err)
+func processTest() {
+	var limitsCount int
 
+	_, err := fmt.Scan(&limitsCount)
+	if err != nil || limitsCount <= 0 {
+		return
+	}
+
+	temp := TemperatureRange{
+		min: defaultMin,
+		max: defaultMax,
+	}
+
+	for range limitsCount {
+		var (
+			sign   string
+			degree int
+		)
+
+		_, err := fmt.Scan(&sign, &degree)
+		if err != nil {
 			return
 		}
 
-		for range workers {
-			var (
-				sign string
-				temp int
-			)
+		if sign != signGreaterOrEqual && sign != signLessOrEqual {
+			continue
+		}
 
-			if _, err := fmt.Scan(&sign, &temp); err != nil {
-				fmt.Println("Error: invalid state:", err)
+		if sign == signGreaterOrEqual && degree > temp.min {
+			temp.min = degree
+		}
 
-				return
-			}
+		if sign == signLessOrEqual && degree < temp.max {
+			temp.max = degree
+		}
 
-			temperatureBounds.change(sign, temp)
-
-			if temperatureBounds.check() {
-				fmt.Println(temperatureBounds.left)
-			} else {
-				fmt.Println(errorCode)
-			}
+		if temp.min <= temp.max {
+			fmt.Println(temp.min)
+		} else {
+			fmt.Println(invalidTemperatureResult)
 		}
 	}
 }
