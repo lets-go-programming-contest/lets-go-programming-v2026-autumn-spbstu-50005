@@ -16,9 +16,9 @@ const (
 )
 
 var (
-	invalidOperator         = errors.New("invalid operator")
-	invalidWorkersCount     = errors.New("invalid workers count")
-	invalidDepartmentsCount = errors.New("invalid departments count")
+	errInvalidOperator         = errors.New("invalid operator")
+	errInvalidWorkersCount     = errors.New("invalid workers count")
+	errInvalidDepartmentsCount = errors.New("invalid departments count")
 )
 
 type tempBounds struct {
@@ -35,7 +35,6 @@ func newTempBounds() *tempBounds {
 
 func (tempb *tempBounds) update(operator string, temperature int) error {
 	switch operator {
-
 	case greaterOrEqual:
 		if temperature >= tempb.min {
 			tempb.min = temperature
@@ -47,7 +46,7 @@ func (tempb *tempBounds) update(operator string, temperature int) error {
 		}
 
 	default:
-		return fmt.Errorf("%w: %q", invalidOperator, operator)
+		return fmt.Errorf("%w: %q", errInvalidOperator, operator)
 	}
 
 	return nil
@@ -69,20 +68,22 @@ func processDepartment() error {
 	}
 
 	if workerCount <= 0 {
-		return invalidWorkersCount
+		return errInvalidWorkersCount
 	}
 
 	bounds := newTempBounds()
 
-	for i := 0; i < workerCount; i++ {
-		var op string
-		var temp int
+	for range workerCount {
+		var (
+			operator string
+			temp     int
+		)
 
-		if _, err := fmt.Scan(&op, &temp); err != nil {
+		if _, err := fmt.Scan(&operator, &temp); err != nil {
 			return fmt.Errorf("failed to read condition: %w", err)
 		}
 
-		if err := bounds.update(op, temp); err != nil {
+		if err := bounds.update(operator, temp); err != nil {
 			return err
 		}
 
@@ -97,17 +98,20 @@ func main() {
 
 	if _, err := fmt.Scan(&departmentCount); err != nil {
 		fmt.Fprintln(os.Stderr, "failed to read departments count:", err)
+
 		return
 	}
 
 	if departmentCount <= 0 {
-		fmt.Fprintln(os.Stderr, invalidDepartmentsCount)
+		fmt.Fprintln(os.Stderr, errInvalidDepartmentsCount)
+
 		return
 	}
 
-	for i := 0; i < departmentCount; i++ {
+	for range departmentCount {
 		if err := processDepartment(); err != nil {
 			fmt.Fprintln(os.Stderr, "Error:", err)
+
 			return
 		}
 	}
