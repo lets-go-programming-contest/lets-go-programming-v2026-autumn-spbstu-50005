@@ -71,7 +71,7 @@ func readWish() (string, int, error) {
 func (tm *TempManager) printTemp() {
 	if tm.low > tm.high {
 		fmt.Println(noConcessions)
-		
+
 		return
 	}
 
