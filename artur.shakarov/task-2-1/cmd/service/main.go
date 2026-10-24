@@ -50,7 +50,7 @@ func readCount() (int, error) {
 	var count int
 
 	if _, err := fmt.Scan(&count); err != nil {
-		return 0, err
+		return 0, fmt.Errorf("read count: %w", err)
 	}
 
 	if count < 1 || count > maxCount {
@@ -68,15 +68,16 @@ func readConditions() ([]condition, error) {
 
 	conditions := make([]condition, count)
 
-	for i := range conditions {
+	for employeeIndex := range conditions {
 		if _, err := fmt.Scan(
-			&conditions[i].operator,
-			&conditions[i].temperature,
+			&conditions[employeeIndex].operator,
+			&conditions[employeeIndex].temperature,
 		); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("read condition: %w", err)
 		}
 
-		if conditions[i].operator != ">=" && conditions[i].operator != "<=" {
+		if conditions[employeeIndex].operator != ">=" &&
+			conditions[employeeIndex].operator != "<=" {
 			return nil, errOperator
 		}
 	}
@@ -92,9 +93,9 @@ func calculate(conditions []condition) []int {
 
 	answers := make([]int, len(conditions))
 
-	for i, item := range conditions {
+	for employeeIndex, item := range conditions {
 		bounds.update(item)
-		answers[i] = bounds.result()
+		answers[employeeIndex] = bounds.result()
 	}
 
 	return answers
@@ -112,7 +113,7 @@ func run() error {
 		return err
 	}
 
-	for department := 0; department < departments; department++ {
+	for range departments {
 		conditions, err := readConditions()
 		if err != nil {
 			return err
