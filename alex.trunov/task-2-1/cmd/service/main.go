@@ -16,6 +16,31 @@ const (
 
 var errInvalidOperator = errors.New("invalid operator")
 
+type TempManager struct {
+	low  int
+	high int
+}
+
+func newTempManager() *TempManager {
+	return &TempManager{
+		low:  minTemp,
+		high: maxTemp,
+	}
+}
+
+func (tm *TempManager) update(operator string, currentTemp int) {
+	switch operator {
+	case moreThan:
+		if currentTemp > tm.low {
+			tm.low = currentTemp
+		}
+	case lessThan:
+		if currentTemp < tm.high {
+			tm.high = currentTemp
+		}
+	}
+}
+
 func readInt() (int, error) {
 	var value int
 
@@ -43,29 +68,13 @@ func readWish() (string, int, error) {
 	return operator, temperature, nil
 }
 
-func updateTemp(operator string, lowTemp, highTemp, currentTemp int) (int, int) {
-	switch operator {
-	case moreThan:
-		if currentTemp > lowTemp {
-			lowTemp = currentTemp
-		}
-	case lessThan:
-		if currentTemp < highTemp {
-			highTemp = currentTemp
-		}
-	}
-
-	return lowTemp, highTemp
-}
-
-func printTemp(lowTemp, highTemp int) {
-	if lowTemp <= highTemp {
-		fmt.Println(lowTemp)
-
+func (tm *TempManager) printTemp() {
+	if tm.low > tm.high {
+		fmt.Println(noConcessions)
 		return
 	}
 
-	fmt.Println(noConcessions)
+	fmt.Println(tm.low)
 }
 
 func fail(err error) {
@@ -82,14 +91,14 @@ func main() {
 		requestsCount, readErr := readInt()
 		fail(readErr)
 
-		lowTemp, highTemp := minTemp, maxTemp
+		tempManager := newTempManager()
 
 		for range requestsCount {
 			operator, currentTemp, wishErr := readWish()
 			fail(wishErr)
 
-			lowTemp, highTemp = updateTemp(operator, lowTemp, highTemp, currentTemp)
-			printTemp(lowTemp, highTemp)
+			tempManager.update(operator, currentTemp)
+			tempManager.printTemp()
 		}
 	}
 }
