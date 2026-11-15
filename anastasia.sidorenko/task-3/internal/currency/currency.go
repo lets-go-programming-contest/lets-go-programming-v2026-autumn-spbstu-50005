@@ -79,6 +79,7 @@ func ReadXML(path string) ([]Valute, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open input file: %w", err)
 	}
+
 	defer func() {
 		_ = file.Close()
 	}()
