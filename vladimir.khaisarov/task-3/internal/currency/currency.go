@@ -3,6 +3,7 @@ package currency
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -18,10 +19,21 @@ const (
 	filePermissions = 0o644
 )
 
+var ErrInvalidRate = errors.New("invalid rate format")
+
 type Rate float64
 
 func (r *Rate) UnmarshalText(text []byte) error {
-	value := strings.ReplaceAll(strings.TrimSpace(string(text)), ",", ".")
+	value := strings.TrimSpace(string(text))
+
+	whole, fraction, found := strings.Cut(value, ",")
+	if strings.ContainsAny(whole, ".,") || strings.ContainsAny(fraction, ".,") {
+		return fmt.Errorf("%w: %q", ErrInvalidRate, value)
+	}
+
+	if found {
+		value = whole + "." + fraction
+	}
 
 	number, err := strconv.ParseFloat(value, 64)
 	if err != nil {
