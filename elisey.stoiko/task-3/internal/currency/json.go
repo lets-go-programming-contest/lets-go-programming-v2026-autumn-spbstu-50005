@@ -21,7 +21,7 @@ func EncodeJSON(writer io.Writer, currencies []Currency) error {
 
 func WriteJSON(path string, currencies []Currency) error {
 	outputDir := filepath.Dir(path)
-	if err := os.MkdirAll(outputDir, 0755); err != nil {
+	if err := os.MkdirAll(outputDir, 0o755); err != nil {
 		return fmt.Errorf("create output directory %q: %w", outputDir, err)
 	}
 
@@ -29,7 +29,12 @@ func WriteJSON(path string, currencies []Currency) error {
 	if err != nil {
 		return fmt.Errorf("create output file %q: %w", path, err)
 	}
-	defer outputFile.Close()
+
+	defer func() {
+		if closeErr := outputFile.Close(); closeErr != nil && err == nil {
+			err = fmt.Errorf("close output file %q: %w", path, closeErr)
+		}
+	}()
 
 	return EncodeJSON(outputFile, currencies)
 }
