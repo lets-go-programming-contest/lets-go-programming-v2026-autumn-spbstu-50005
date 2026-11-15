@@ -3,6 +3,7 @@ package currency
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,6 +18,11 @@ import (
 const (
 	dirPermissions  = 0o755
 	filePermissions = 0o644
+)
+
+var (
+	ErrInvalidValueFormat = errors.New("invalid value format")
+	ErrUnsupportedCharset = errors.New("unsupported charset")
 )
 
 type CommaFloat float64
@@ -41,7 +47,7 @@ func (r *CommaFloat) UnmarshalText(text []byte) error {
 	wholeStr, afterStr, found := strings.Cut(s, ",")
 
 	if !isDigits(wholeStr) || (!isDigits(afterStr) && found) {
-		return fmt.Errorf("invalid value format %q", text)
+		return fmt.Errorf("%w: %q", ErrInvalidValueFormat, text)
 	}
 
 	if found {
@@ -52,15 +58,16 @@ func (r *CommaFloat) UnmarshalText(text []byte) error {
 	if err != nil {
 		return fmt.Errorf("parse Value to float64: %w", err)
 	}
+
 	*r = CommaFloat(val)
 
 	return nil
 }
 
 type Valute struct {
-	NumCode  int        `xml:"NumCode" json:"num_code"`
-	CharCode string     `xml:"CharCode" json:"char_code"`
-	Value    CommaFloat `xml:"Value" json:"value"`
+	NumCode  int        `json:"num_code"  xml:"NumCode"`
+	CharCode string     `json:"char_code" xml:"CharCode"`
+	Value    CommaFloat `json:"value"     xml:"Value"`
 }
 
 type valCurs struct {
@@ -72,7 +79,9 @@ func ReadXML(path string) ([]Valute, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open input file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	decoder := xml.NewDecoder(file)
 
@@ -81,7 +90,7 @@ func ReadXML(path string) ([]Valute, error) {
 			return charmap.Windows1251.NewDecoder().Reader(input), nil
 		}
 
-		return nil, fmt.Errorf("unsupported charset %q", label)
+		return nil, fmt.Errorf("%w: %q", ErrUnsupportedCharset, label)
 	}
 
 	var data valCurs
