@@ -24,7 +24,7 @@ func Load(path string) (Config, error) {
 
 	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return Config{}, fmt.Errorf("decode config %q: %w", path, err)
+		return Config{}, fmt.Errorf("decode config %q: did not find expected key: %w", path, err)
 	}
 
 	cfg.InputFilePath = strings.TrimSpace(cfg.InputFilePath)
