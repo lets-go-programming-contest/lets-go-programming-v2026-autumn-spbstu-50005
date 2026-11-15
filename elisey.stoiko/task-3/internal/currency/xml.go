@@ -2,6 +2,7 @@ package currency
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -9,6 +10,8 @@ import (
 
 	"golang.org/x/text/encoding/charmap"
 )
+
+var ErrUnsupportedCharset = errors.New("unsupported charset")
 
 type xmlRates struct {
 	XMLName    xml.Name   `xml:"ValCurs"`
@@ -22,7 +25,7 @@ func DecodeXML(reader io.Reader) ([]Currency, error) {
 			return charmap.Windows1251.NewDecoder().Reader(input), nil
 		}
 
-		return nil, fmt.Errorf("unsupported charset: %s", charset)
+		return nil, fmt.Errorf("%w: %s", ErrUnsupportedCharset, charset)
 	}
 
 	var rates xmlRates
@@ -42,7 +45,12 @@ func ReadXML(path string) ([]Currency, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open input file %q: %w", path, err)
 	}
-	defer inputFile.Close()
+
+	defer func() {
+		if closeErr := inputFile.Close(); closeErr != nil && err == nil {
+			err = fmt.Errorf("close input file %q: %w", path, closeErr)
+		}
+	}()
 
 	return DecodeXML(inputFile)
 }
