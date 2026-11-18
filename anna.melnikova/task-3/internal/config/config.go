@@ -30,7 +30,9 @@ func Load(path string) (*Config, error) {
 	}
 
 	var cfg Config
+
 	decoder := yaml.NewDecoder(bytes.NewReader(data))
+
 	decoder.KnownFields(true)
 
 	if err := decoder.Decode(&cfg); err != nil {

@@ -1,6 +1,7 @@
 package currency
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -42,23 +43,25 @@ type Currency struct {
 }
 
 func ParseXML(path string) ([]Currency, error) {
-	file, err := os.Open(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("open xml file: %w", err)
+		return nil, fmt.Errorf("read xml file: %w", err)
 	}
-	defer file.Close()
 
-	decoder := xml.NewDecoder(file)
+	decoder := xml.NewDecoder(bytes.NewReader(data))
 	decoder.CharsetReader = charset.NewReaderLabel
 
 	var raw valCurs
+
 	if err := decoder.Decode(&raw); err != nil {
 		return nil, fmt.Errorf("decode xml: %w", err)
 	}
 
 	currencies := make([]Currency, 0, len(raw.Valutes))
+
 	for _, item := range raw.Valutes {
 		numCode := 0
+
 		numStr := strings.TrimSpace(item.NumCode)
 		if numStr != "" {
 			numCode, err = strconv.Atoi(numStr)
@@ -68,6 +71,7 @@ func ParseXML(path string) ([]Currency, error) {
 		}
 
 		valStr := strings.ReplaceAll(strings.TrimSpace(item.Value), ",", ".")
+
 		valFloat, err := strconv.ParseFloat(valStr, 64)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrInvalidValueFormat, err)
