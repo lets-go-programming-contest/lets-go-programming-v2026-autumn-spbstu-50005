@@ -36,9 +36,9 @@ func (d *Decimal) UnmarshalText(text []byte) error {
 }
 
 type Currency struct {
-	NumCode  int     `json:"num_code" xml:"NumCode"`
+	NumCode  int     `json:"num_code"  xml:"NumCode"`
 	CharCode string  `json:"char_code" xml:"CharCode"`
-	Value    Decimal `json:"value" xml:"Value"`
+	Value    Decimal `json:"value"     xml:"Value"`
 }
 
 func SortByValue(currencies []Currency) {
