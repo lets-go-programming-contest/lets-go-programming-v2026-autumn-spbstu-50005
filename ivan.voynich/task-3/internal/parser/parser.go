@@ -17,15 +17,16 @@ func ReadXML[T any](filepath string) (T, error) {
 	var result T
 
 	data, err := os.ReadFile(filepath)
-
 	if err != nil {
 		return result, fmt.Errorf("error reading XML file: %w", err)
 	}
+
 	decoder := xml.NewDecoder(bytes.NewReader(data))
 	decoder.CharsetReader = func(charset string, input io.Reader) (io.Reader, error) {
 		if strings.EqualFold(charset, "windows-1251") {
 			return charmap.Windows1251.NewDecoder().Reader(input), nil
 		}
+
 		return input, nil
 	}
 

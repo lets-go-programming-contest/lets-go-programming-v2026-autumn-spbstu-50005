@@ -37,7 +37,6 @@ func (r *CurrencyValue) UnmarshalXML(d *xml.Decoder, start xml.StartElement) err
 	normalized := strings.Replace(strings.TrimSpace(raw), ",", ".", 1)
 
 	val, err := strconv.ParseFloat(normalized, 64)
-
 	if err != nil {
 		return fmt.Errorf("parse currency float %q: %w", normalized, err)
 	}

@@ -17,11 +17,9 @@ type Config struct {
 }
 
 func GetConfig(configPath string) (Config, error) {
-
 	var cfg Config
 
 	data, err := os.ReadFile(configPath)
-
 	if err != nil {
 		return cfg, fmt.Errorf("error of reading configuration file: %w", err)
 	}
