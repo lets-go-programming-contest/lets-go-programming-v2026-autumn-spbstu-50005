@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-const folderPermission = 0755
+const folderPermission = 0o755
 
 func SaveAsJSON(destPath string, data []ValuteInfo) error {
 	dir := filepath.Dir(destPath)
@@ -15,13 +15,18 @@ func SaveAsJSON(destPath string, data []ValuteInfo) error {
 		return fmt.Errorf("create directory %q: %w", dir, err)
 	}
 
-	file, err := os.Create(destPath)
+	outputFile, err := os.Create(destPath)
 	if err != nil {
 		return fmt.Errorf("create file %q: %w", destPath, err)
 	}
-	defer file.Close()
 
-	encoder := json.NewEncoder(file)
+	defer func() {
+		if closeErr := outputFile.Close(); closeErr != nil && err == nil {
+			err = fmt.Errorf("close file %q: %w", destPath, closeErr)
+		}
+	}()
+
+	encoder := json.NewEncoder(outputFile)
 	encoder.SetIndent("", "  ")
 
 	if err := encoder.Encode(data); err != nil {

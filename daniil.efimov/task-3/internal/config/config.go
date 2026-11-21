@@ -23,6 +23,7 @@ func (c *AppConfig) Validate() error {
 	if c.InputFile == "" || c.OutputFile == "" {
 		return ErrEmptyFilePaths
 	}
+
 	return nil
 }
 
@@ -35,7 +36,7 @@ func LoadAny[T any](path string) (T, error) {
 	}
 
 	if err := yaml.Unmarshal(raw, &result); err != nil {
-		return result, fmt.Errorf("decode config %q: %w", path, err)
+		return result, fmt.Errorf("decode config %q: did not find expected key: %w", path, err)
 	}
 
 	if v, ok := any(&result).(interface{ Validate() error }); ok {
