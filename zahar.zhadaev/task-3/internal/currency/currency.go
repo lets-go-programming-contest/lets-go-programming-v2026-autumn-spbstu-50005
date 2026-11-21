@@ -51,15 +51,15 @@ type valCursDocument struct {
 }
 
 func LoadFromXML(filePath string) ([]Rate, error) {
-	f, err := os.Open(filePath)
+	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("open xml %q: %w", filePath, err)
 	}
 	defer func() {
-		_ = f.Close()
+		_ = file.Close()
 	}()
 
-	dec := xml.NewDecoder(f)
+	dec := xml.NewDecoder(file)
 	dec.CharsetReader = func(charset string, input io.Reader) (io.Reader, error) {
 		if strings.EqualFold(charset, "windows-1251") {
 			return charmap.Windows1251.NewDecoder().Reader(input), nil
