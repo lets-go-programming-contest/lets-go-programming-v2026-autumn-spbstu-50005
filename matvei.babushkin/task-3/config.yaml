@@ -1,0 +1,2 @@
+input-file: testdata/currencies.xml
+output-file: output/currencies.json

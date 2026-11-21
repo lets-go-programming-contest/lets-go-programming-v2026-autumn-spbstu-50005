@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<ValCurs Date="01.01.2026" name="Учебные курсы">
+ <Valute ID="R01235"><NumCode>840</NumCode><CharCode>USD</CharCode><Nominal>1</Nominal><Name>Доллар США</Name><Value>90,1234</Value></Valute>
+ <Valute ID="R01239"><NumCode>978</NumCode><CharCode>EUR</CharCode><Nominal>1</Nominal><Name>Евро</Name><Value>100,5000</Value></Valute>
+ <Valute ID="R01010"><NumCode>036</NumCode><CharCode>AUD</CharCode><Nominal>1</Nominal><Name>Австралийский доллар</Name><Value>9,7500</Value></Valute>
+</ValCurs>
