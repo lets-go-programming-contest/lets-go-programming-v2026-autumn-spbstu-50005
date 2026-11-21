@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	dirPerm  os.FileMode = 0755
-	filePerm os.FileMode = 0644
+	dirPerm  os.FileMode = 0o0755
+	filePerm os.FileMode = 0o0644
 )
 
 func main() {
@@ -20,23 +20,28 @@ func main() {
 	flag.Parse()
 
 	cfg, err := config.GetConfig(*configPath)
+
 	if err != nil {
 		panic(err)
 	}
+
 	if err := config.ValidateConfig(&cfg); err != nil {
 		panic(err)
 	}
-	curs, err := parser.ReadXml[currency.ValCurs](cfg.InputFile)
+
+	curs, err := parser.ReadXML[currency.ValCurs](cfg.InputFile)
+
 	if err != nil {
 		panic(err)
 	}
+
 	curs.SortValueByDesc()
 
 	if err := parser.EnsureDir(cfg.OutputFile, dirPerm); err != nil {
 		panic(err)
 	}
 
-	if err := parser.WriteJson(cfg.OutputFile, curs.Valutes, filePerm); err != nil {
+	if err := parser.WriteJSON(cfg.OutputFile, curs.Valutes, filePerm); err != nil {
 		panic(err)
 	}
 

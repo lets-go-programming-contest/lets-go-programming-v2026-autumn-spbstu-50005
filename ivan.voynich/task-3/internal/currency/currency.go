@@ -3,6 +3,7 @@ package currency
 import (
 	"cmp"
 	"encoding/xml"
+	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -19,26 +20,29 @@ func (v *ValCurs) SortValueByDesc() {
 }
 
 type Valute struct {
-	NumCode  int           `xml:"NumCode" json:"num_code"`
-	CharCode string        `xml:"CharCode" json:"char_code"`
-	Value    CurrencyValue `xml:"Value" json:"value"`
+	NumCode  int           `json:"num_code"  xml:"NumCode"`
+	CharCode string        `json:"char_code" xml:"CharCode"`
+	Value    CurrencyValue `json:"value"     xml:"Value"`
 }
 
 type CurrencyValue float64
 
 func (r *CurrencyValue) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var raw string
+
 	if err := d.DecodeElement(&raw, &start); err != nil {
-		return err
+		return fmt.Errorf("decode currency value: %w", err)
 	}
 
 	normalized := strings.Replace(strings.TrimSpace(raw), ",", ".", 1)
+
 	val, err := strconv.ParseFloat(normalized, 64)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("parse currency float %q: %w", normalized, err)
 	}
 
 	*r = CurrencyValue(val)
+
 	return nil
 }

@@ -13,12 +13,13 @@ import (
 	"golang.org/x/text/encoding/charmap"
 )
 
-func ReadXml[T any](filepath string) (T, error) {
+func ReadXML[T any](filepath string) (T, error) {
 	var result T
 
 	data, err := os.ReadFile(filepath)
+
 	if err != nil {
-		return result, fmt.Errorf("Error reading XML file: %w", err)
+		return result, fmt.Errorf("error reading XML file: %w", err)
 	}
 	decoder := xml.NewDecoder(bytes.NewReader(data))
 	decoder.CharsetReader = func(charset string, input io.Reader) (io.Reader, error) {
@@ -29,7 +30,7 @@ func ReadXml[T any](filepath string) (T, error) {
 	}
 
 	if err := decoder.Decode(&result); err != nil {
-		return result, fmt.Errorf("Error decoding XML file: %w", err)
+		return result, fmt.Errorf("error decoding XML file: %w", err)
 	}
 
 	return result, nil
@@ -43,19 +44,21 @@ func EnsureDir(filePath string, perm os.FileMode) error {
 	}
 
 	if err := os.MkdirAll(dir, perm); err != nil {
-		return fmt.Errorf("Error creating directory %s: %w", dir, err)
+		return fmt.Errorf("error creating directory %s: %w", dir, err)
 	}
 
 	return nil
 }
 
-func WriteJson[T any](filepath string, data T, perm os.FileMode) error {
+func WriteJSON[T any](filepath string, data T, perm os.FileMode) error {
 	jsonBytes, err := json.MarshalIndent(data, "", "	")
+
 	if err != nil {
-		return fmt.Errorf("Error endcoding json: %w", err)
+		return fmt.Errorf("error endcoding json: %w", err)
 	}
+
 	if err := os.WriteFile(filepath, jsonBytes, perm); err != nil {
-		return fmt.Errorf("Error writing JSON file: %w", err)
+		return fmt.Errorf("error writing JSON file: %w", err)
 	}
 
 	return nil
