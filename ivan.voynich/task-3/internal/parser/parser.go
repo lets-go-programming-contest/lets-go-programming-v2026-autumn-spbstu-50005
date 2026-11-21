@@ -53,7 +53,6 @@ func EnsureDir(filePath string, perm os.FileMode) error {
 
 func WriteJSON[T any](filepath string, data T, perm os.FileMode) error {
 	jsonBytes, err := json.MarshalIndent(data, "", "	")
-
 	if err != nil {
 		return fmt.Errorf("error endcoding json: %w", err)
 	}

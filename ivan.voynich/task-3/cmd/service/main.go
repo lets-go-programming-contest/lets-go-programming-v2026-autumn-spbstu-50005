@@ -20,7 +20,6 @@ func main() {
 	flag.Parse()
 
 	cfg, err := config.GetConfig(*configPath)
-
 	if err != nil {
 		panic(err)
 	}
@@ -30,7 +29,6 @@ func main() {
 	}
 
 	curs, err := parser.ReadXML[currency.ValCurs](cfg.InputFile)
-
 	if err != nil {
 		panic(err)
 	}
