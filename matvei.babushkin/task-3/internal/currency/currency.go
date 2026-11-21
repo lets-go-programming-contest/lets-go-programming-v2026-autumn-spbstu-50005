@@ -22,7 +22,6 @@ type Currency struct {
 	Value    float64 `json:"value"`
 }
 
-// The exercise sorts the original Value, without dividing by Nominal.
 func SortByValue(currencies []Currency) {
 	sort.SliceStable(currencies, func(i, j int) bool {
 		return currencies[i].Value > currencies[j].Value
@@ -35,7 +34,6 @@ var (
 	ErrInvalidValue        = errors.New("invalid currency Value")
 )
 
-// XML keeps Value as text because the source uses a decimal comma.
 type xmlCurrency struct {
 	NumCode  int    `xml:"NumCode"`
 	CharCode string `xml:"CharCode"`
@@ -122,7 +120,6 @@ func decodeXML(data []byte) (xmlRates, error) {
 	return rates, nil
 }
 
-// parseValue accepts decimal digits with an optional comma and fractional part.
 func parseValue(text string) (float64, error) {
 	text = strings.TrimSpace(text)
 	whole, fraction, hasComma := strings.Cut(text, ",")
