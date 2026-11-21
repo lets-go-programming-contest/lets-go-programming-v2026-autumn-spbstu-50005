@@ -7,6 +7,11 @@ import (
 	"github.com/sidorenkoanastasia-ca/task-3/internal/currency"
 )
 
+const (
+	dirPermissions  = 0o755
+	filePermissions = 0o644
+)
+
 func main() {
 	configPath := flag.String("config", "", "path to config file")
 	flag.Parse()
@@ -23,7 +28,7 @@ func main() {
 
 	currency.SortByValues(cur)
 
-	if err := currency.WriteJSON(cfg.OutputFile, cur); err != nil {
+	if err := currency.WriteJSON(cfg.OutputFile, cur, dirPermissions, filePermissions); err != nil {
 		panic(err)
 	}
 }

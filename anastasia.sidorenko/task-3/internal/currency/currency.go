@@ -15,11 +15,6 @@ import (
 	"golang.org/x/text/encoding/charmap"
 )
 
-const (
-	dirPermissions  = 0o755
-	filePermissions = 0o644
-)
-
 var (
 	ErrInvalidValueFormat = errors.New("invalid value format")
 	ErrUnsupportedCharset = errors.New("unsupported charset")
@@ -108,8 +103,8 @@ func SortByValues(valutes []Valute) {
 	})
 }
 
-func WriteJSON(path string, valutes []Valute) error {
-	if err := os.MkdirAll(filepath.Dir(path), dirPermissions); err != nil {
+func WriteJSON(path string, valutes []Valute, dirPerm, filePerm os.FileMode) error {
+	if err := os.MkdirAll(filepath.Dir(path), dirPerm); err != nil {
 		return fmt.Errorf("create output directory: %w", err)
 	}
 
@@ -118,7 +113,7 @@ func WriteJSON(path string, valutes []Valute) error {
 		return fmt.Errorf("encode JSON: %w", err)
 	}
 
-	if err := os.WriteFile(path, data, filePermissions); err != nil {
+	if err := os.WriteFile(path, data, filePerm); err != nil {
 		return fmt.Errorf("write JSON: %w", err)
 	}
 
