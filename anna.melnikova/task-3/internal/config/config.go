@@ -1,10 +1,10 @@
 package config
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 )
@@ -19,19 +19,31 @@ type Config struct {
 	OutputFile string `yaml:"output-file"`
 }
 
+func (c *Config) Validate() error {
+	if c.InputFile == "" || c.OutputFile == "" {
+		return ErrInvalidConfig
+	}
+
+	return nil
+}
+
 func Load(path string) (*Config, error) {
 	if path == "" {
 		return nil, ErrEmptyConfigPath
 	}
 
-	data, err := os.ReadFile(path)
+	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
-		return nil, fmt.Errorf("read config: %w", err)
+		return nil, fmt.Errorf("open config: %w", err)
 	}
+
+	defer func() {
+		_ = file.Close()
+	}()
 
 	var cfg Config
 
-	decoder := yaml.NewDecoder(bytes.NewReader(data))
+	decoder := yaml.NewDecoder(file)
 
 	decoder.KnownFields(true)
 
@@ -39,8 +51,8 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
-	if cfg.InputFile == "" || cfg.OutputFile == "" {
-		return nil, ErrInvalidConfig
+	if err := cfg.Validate(); err != nil {
+		return nil, err
 	}
 
 	return &cfg, nil

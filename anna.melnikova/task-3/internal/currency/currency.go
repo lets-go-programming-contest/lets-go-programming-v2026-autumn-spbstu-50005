@@ -1,112 +1,116 @@
 package currency
 
 import (
-	"bytes"
+	"cmp"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 
-	"golang.org/x/net/html/charset"
-)
-
-const (
-	dirPermissions  = 0o755
-	filePermissions = 0o644
+	"golang.org/x/text/encoding/charmap"
 )
 
 var (
-	ErrInvalidNumCode     = errors.New("invalid num code format")
 	ErrInvalidValueFormat = errors.New("invalid value format")
+	ErrUnsupportedCharset = errors.New("unsupported charset")
 )
 
-type valCurs struct {
-	XMLName xml.Name `xml:"ValCurs"`
-	Valutes []valute `xml:"Valute"`
-}
+type Rate float64
 
-type valute struct {
-	NumCode  string `xml:"NumCode"`
-	CharCode string `xml:"CharCode"`
-	Value    string `xml:"Value"`
+func (r *Rate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var raw string
+
+	if err := d.DecodeElement(&raw, &start); err != nil {
+		return fmt.Errorf("decode rate element: %w", err)
+	}
+
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" || strings.Contains(trimmed, ".") || strings.Count(trimmed, ",") > 1 {
+		return fmt.Errorf("%w: %q", ErrInvalidValueFormat, trimmed)
+	}
+
+	normalized := strings.Replace(trimmed, ",", ".", 1)
+
+	parsed, err := strconv.ParseFloat(normalized, 64)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrInvalidValueFormat, err)
+	}
+
+	*r = Rate(parsed)
+
+	return nil
 }
 
 type Currency struct {
-	NumCode  int     `json:"num_code"`
-	CharCode string  `json:"char_code"`
-	Value    float64 `json:"value"`
+	NumCode  int    `json:"num_code"  xml:"NumCode"`
+	CharCode string `json:"char_code" xml:"CharCode"`
+	Value    Rate   `json:"value"     xml:"Value"`
 }
 
-func ParseXML(path string) ([]Currency, error) {
-	data, err := os.ReadFile(path)
+type ValCurs struct {
+	XMLName xml.Name   `xml:"ValCurs"`
+	Valutes []Currency `xml:"Valute"`
+}
+
+func ParseXML[T any](path string) (T, error) {
+	var result T
+
+	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
-		return nil, fmt.Errorf("read xml file: %w", err)
+		return result, fmt.Errorf("open xml file: %w", err)
 	}
 
-	decoder := xml.NewDecoder(bytes.NewReader(data))
-	decoder.CharsetReader = charset.NewReaderLabel
+	defer func() {
+		_ = file.Close()
+	}()
 
-	var raw valCurs
+	decoder := xml.NewDecoder(file)
+	decoder.CharsetReader = charsetReader
 
-	if err := decoder.Decode(&raw); err != nil {
-		return nil, fmt.Errorf("decode xml: %w", err)
+	if err := decoder.Decode(&result); err != nil {
+		return result, fmt.Errorf("decode xml: %w", err)
 	}
 
-	currencies := make([]Currency, 0, len(raw.Valutes))
+	return result, nil
+}
 
-	for _, item := range raw.Valutes {
-		numCode := 0
-
-		numStr := strings.TrimSpace(item.NumCode)
-		if numStr != "" {
-			numCode, err = strconv.Atoi(numStr)
-			if err != nil {
-				return nil, fmt.Errorf("%w: %w", ErrInvalidNumCode, err)
-			}
-		}
-
-		valStr := strings.ReplaceAll(strings.TrimSpace(item.Value), ",", ".")
-
-		valFloat, err := strconv.ParseFloat(valStr, 64)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrInvalidValueFormat, err)
-		}
-
-		currencies = append(currencies, Currency{
-			NumCode:  numCode,
-			CharCode: strings.TrimSpace(item.CharCode),
-			Value:    valFloat,
-		})
+func charsetReader(charset string, input io.Reader) (io.Reader, error) {
+	switch strings.ToLower(charset) {
+	case "windows-1251", "cp1251":
+		return charmap.Windows1251.NewDecoder().Reader(input), nil
+	case "utf-8", "utf8":
+		return input, nil
+	default:
+		return nil, fmt.Errorf("%w: %s", ErrUnsupportedCharset, charset)
 	}
-
-	return currencies, nil
 }
 
 func SortDesc(currencies []Currency) {
-	sort.Slice(currencies, func(i, j int) bool {
-		return currencies[i].Value > currencies[j].Value
+	slices.SortFunc(currencies, func(a, b Currency) int {
+		return cmp.Compare(b.Value, a.Value)
 	})
 }
 
-func SaveJSON(path string, currencies []Currency) error {
+func SaveJSON[T any](path string, data T, dirPerm, filePerm os.FileMode) error {
 	dir := filepath.Dir(path)
 	if dir != "" && dir != "." {
-		if err := os.MkdirAll(dir, dirPermissions); err != nil {
+		if err := os.MkdirAll(dir, dirPerm); err != nil {
 			return fmt.Errorf("create output directory: %w", err)
 		}
 	}
 
-	data, err := json.MarshalIndent(currencies, "", "  ")
+	encoded, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshal json: %w", err)
 	}
 
-	if err := os.WriteFile(path, data, filePermissions); err != nil {
+	if err := os.WriteFile(path, encoded, filePerm); err != nil {
 		return fmt.Errorf("write json file: %w", err)
 	}
 

@@ -2,28 +2,36 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	"github.com/g0disd3ad/task-3/internal/config"
 	"github.com/g0disd3ad/task-3/internal/currency"
 )
 
+const (
+	dirPermissions  os.FileMode = 0o755
+	filePermissions os.FileMode = 0o644
+)
+
 func main() {
-	configPath := flag.String("config", "", "path to config file")
+	var configPath string
+
+	flag.StringVar(&configPath, "config", "", "path to config file")
 	flag.Parse()
 
-	cfg, err := config.Load(*configPath)
+	cfg, err := config.Load(configPath)
 	if err != nil {
 		panic(err)
 	}
 
-	currencies, err := currency.ParseXML(cfg.InputFile)
+	curs, err := currency.ParseXML[currency.ValCurs](cfg.InputFile)
 	if err != nil {
 		panic(err)
 	}
 
-	currency.SortDesc(currencies)
+	currency.SortDesc(curs.Valutes)
 
-	if err := currency.SaveJSON(cfg.OutputFile, currencies); err != nil {
+	if err := currency.SaveJSON(cfg.OutputFile, curs.Valutes, dirPermissions, filePermissions); err != nil {
 		panic(err)
 	}
 }
