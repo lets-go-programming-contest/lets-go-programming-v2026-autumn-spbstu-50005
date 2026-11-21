@@ -6,7 +6,8 @@ import (
 )
 
 func MustGetConfigPath() string {
-	var configPath *string = flag.String("config", "", "path to file does not find")
+	configPath := flag.String("config", "", "path to file does not find")
+
 	flag.Parse()
 
 	if *configPath == "" {

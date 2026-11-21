@@ -14,16 +14,19 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
+var errMissingValCurs = errors.New("incorrect XML signature: ValCurs is missing")
+
 func LoadXML(path string) ([]Currency, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("could not reat XML: %w", err)
+		return nil, fmt.Errorf("could not read XML: %w", err)
 	}
 
 	decoder := xml.NewDecoder(bytes.NewReader(data))
 	decoder.CharsetReader = charset.NewReaderLabel
 
 	var currencies []Currency
+
 	hasRoot := false
 
 	for {
@@ -31,6 +34,7 @@ func LoadXML(path string) ([]Currency, error) {
 		if errors.Is(err, io.EOF) {
 			break
 		}
+
 		if err != nil {
 			return nil, fmt.Errorf("error of reading XML: %w", err)
 		}
@@ -48,12 +52,13 @@ func LoadXML(path string) ([]Currency, error) {
 			if err := decoder.DecodeElement(&item, &startElem); err != nil {
 				return nil, fmt.Errorf("error of decoding Valute: %w", err)
 			}
+
 			currencies = append(currencies, item)
 		}
 	}
 
 	if !hasRoot {
-		return nil, errors.New("incorrect XML signature: ValCurs is missing")
+		return nil, errMissingValCurs
 	}
 
 	return currencies, nil
@@ -75,11 +80,17 @@ func SaveJSON(path string, items []Currency) error {
 	if err != nil {
 		return fmt.Errorf("could not to make file %q: %w", path, err)
 	}
-	defer file.Close()
+
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil && err == nil {
+			err = fmt.Errorf("close output file: %w", closeErr)
+		}
+	}()
 
 	enc := json.NewEncoder(file)
 	enc.SetIndent("", "  ")
-	if err := enc.Encode(items); err != nil {
+
+	if err = enc.Encode(items); err != nil {
 		return fmt.Errorf("error of coding to JSON: %w", err)
 	}
 

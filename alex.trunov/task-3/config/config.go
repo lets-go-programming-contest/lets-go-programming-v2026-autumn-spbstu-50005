@@ -14,14 +14,13 @@ type Config struct {
 
 func MustLoad(path string) Config {
 	data, err := os.ReadFile(path)
-
 	if err != nil {
-		panic(fmt.Errorf("Error: config failed to read: %w", err))
+		panic(fmt.Errorf("config failed to read: %w", err))
 	}
 
 	var cfg Config
 	if err = yaml.Unmarshal(data, &cfg); err != nil {
-		panic(fmt.Errorf("Error: config failed to parse: %w", err))
+		panic(fmt.Errorf("config failed to parse: %w", err))
 	}
 
 	return cfg
