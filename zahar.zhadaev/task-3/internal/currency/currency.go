@@ -36,6 +36,7 @@ func (rv *RateValue) UnmarshalText(data []byte) error {
 	}
 
 	*rv = RateValue(parsed)
+
 	return nil
 }
 
@@ -55,6 +56,7 @@ func LoadFromXML(filePath string) ([]Rate, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open xml %q: %w", filePath, err)
 	}
+
 	defer func() {
 		_ = file.Close()
 	}()
@@ -64,6 +66,7 @@ func LoadFromXML(filePath string) ([]Rate, error) {
 		if strings.EqualFold(charset, "windows-1251") {
 			return charmap.Windows1251.NewDecoder().Reader(input), nil
 		}
+
 		return nil, fmt.Errorf("%w: %q", ErrEncodingNotSupported, charset)
 	}
 
