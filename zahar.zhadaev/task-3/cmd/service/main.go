@@ -17,15 +17,15 @@ func main() {
 }
 
 func run(args []string) error {
-	fs := flag.NewFlagSet("currency-converter", flag.ContinueOnError)
-	cfgPath := fs.String("config", "config.yaml", "path to configuration YAML")
+	flagSet := flag.NewFlagSet("currency-converter", flag.ContinueOnError)
+	cfgPath := flagSet.String("config", "config.yaml", "path to configuration YAML")
 
-	if err := fs.Parse(args); err != nil {
+	if err := flagSet.Parse(args); err != nil {
 		return err
 	}
 
-	if fs.NArg() != 0 {
-		return fmt.Errorf("unexpected positional arguments: %v", fs.Args())
+	if flagSet.NArg() != 0 {
+		return fmt.Errorf("unexpected positional arguments: %v", flagSet.Args())
 	}
 
 	cfg, err := config.ReadSettings(*cfgPath)
