@@ -20,14 +20,17 @@ const (
 	fileMode   = 0o644
 )
 
-var ErrEncodingNotSupported = errors.New("encoding is not supported")
+var (
+	ErrEncodingNotSupported = errors.New("encoding is not supported")
+	errEmptyRateValue       = errors.New("empty rate value")
+)
 
 type RateValue float64
 
 func (rv *RateValue) UnmarshalText(data []byte) error {
 	normalized := strings.ReplaceAll(strings.TrimSpace(string(data)), ",", ".")
 	if normalized == "" {
-		return fmt.Errorf("empty rate value")
+		return errEmptyRateValue
 	}
 
 	parsed, err := strconv.ParseFloat(normalized, 64)
