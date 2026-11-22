@@ -18,7 +18,7 @@ type Document[T any] struct {
 	Items   []T      `xml:"Valute"`
 }
 
-func ReadXML[T any](path string) ([]T, error) {
+func Read[T any](path string) ([]T, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("open xml file: %w", err)

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func WriteJSON[T any](path string, items []T, dirPerm os.FileMode, filePerm os.FileMode) error {
+func Write[T any](path string, items []T, dirPerm os.FileMode, filePerm os.FileMode) error {
 	data, err := json.MarshalIndent(items, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshal json: %w", err)

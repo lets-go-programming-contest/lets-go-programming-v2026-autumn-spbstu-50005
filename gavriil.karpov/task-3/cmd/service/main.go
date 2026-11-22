@@ -19,14 +19,14 @@ func main() {
 		panic(err)
 	}
 
-	currencies, err := converter.ReadXML[converter.Currency](cfg.InputFile)
+	currencies, err := converter.Read[converter.Currency](cfg.InputFile)
 	if err != nil {
 		panic(err)
 	}
 
 	converter.SortByValue(currencies)
 
-	err = converter.WriteJSON(cfg.OutputFile, currencies, dirPerm, filePerm)
+	err = converter.Write(cfg.OutputFile, currencies, dirPerm, filePerm)
 	if err != nil {
 		panic(err)
 	}
