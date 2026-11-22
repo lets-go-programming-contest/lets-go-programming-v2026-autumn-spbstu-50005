@@ -77,6 +77,7 @@ func ReadValutes(path string) ([]OutCurrency, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: open %q: %w", ErrInput, path, err)
 	}
+
 	defer func() {
 		_ = file.Close()
 	}()
