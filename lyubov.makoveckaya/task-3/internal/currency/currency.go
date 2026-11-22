@@ -44,14 +44,12 @@ func (rv *RateValue) UnmarshalText(data []byte) error {
 	return nil
 }
 
-// Rate — одна валюта из XML (Value разбирается через UnmarshalText).
 type Rate struct {
 	NumCode  int       `xml:"NumCode"`
 	CharCode string    `xml:"CharCode"`
 	Value    RateValue `xml:"Value"`
 }
 
-// valCursDocument — корневой элемент XML ЦБ.
 type valCursDocument struct {
 	XMLName xml.Name `xml:"ValCurs"`
 	Items   []Rate   `xml:"Valute"`
@@ -73,7 +71,7 @@ func charsetReader(charset string, input io.Reader) (io.Reader, error) {
 	return nil, fmt.Errorf("%w: unsupported charset %q", ErrInput, charset)
 }
 
-func readValutes(path string) ([]OutCurrency, error) {
+func ReadValutes(path string) ([]OutCurrency, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("%w: open %q: %w", ErrInput, path, err)
@@ -99,7 +97,7 @@ func readValutes(path string) ([]OutCurrency, error) {
 	return result, nil
 }
 
-func writeJSON(path string, data []OutCurrency) error {
+func WriteJSON(path string, data []OutCurrency) error {
 	dir := filepath.Dir(path)
 	if dir != "" && dir != "." {
 		if err := os.MkdirAll(dir, folderMode); err != nil {
@@ -114,7 +112,9 @@ func writeJSON(path string, data []OutCurrency) error {
 	defer f.Close()
 
 	encoder := json.NewEncoder(f)
-	encoder.SetIndent("", jsonIndent)
+	// ИСПРАВЛЕНИЕ: вместо jsonIndent пишем 4 пробела в кавычках
+	encoder.SetIndent("", "    ")
+
 	if err := encoder.Encode(data); err != nil {
 		return fmt.Errorf("%w: encode JSON to %q: %w", ErrOutput, path, err)
 	}

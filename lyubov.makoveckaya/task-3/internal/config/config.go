@@ -10,19 +10,18 @@ import (
 )
 
 var (
-    ErrConfigRead   = errors.New("failed to read config file")
-    ErrConfigParse  = errors.New("invalid config file format")
-    ErrNoInputFile  = errors.New("input-file is not specified in config")
-    ErrNoOutputFile = errors.New("output-file is not specified in config")
+	ErrConfigRead   = errors.New("failed to read config file")
+	ErrConfigParse  = errors.New("invalid config file format")
+	ErrNoInputFile  = errors.New("input-file is not specified in config")
+	ErrNoOutputFile = errors.New("output-file is not specified in config")
 )
-
 
 type Config struct {
 	InputFile  string `yaml:"input-file"`
 	OutputFile string `yaml:"output-file"`
 }
 
-func readConfig(path string) (*Config, error) {
+func ReadConfig(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("%w %q: %w", ErrConfigRead, path, err)

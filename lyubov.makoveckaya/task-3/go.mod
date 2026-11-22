@@ -1,6 +1,6 @@
-module currency
+module github.com/Manicen/task-3
 
-go 1.21
+go 1.22.0
 
 require (
 	golang.org/x/text v0.14.0

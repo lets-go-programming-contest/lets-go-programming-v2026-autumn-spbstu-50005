@@ -3,18 +3,21 @@ package main
 import (
 	"flag"
 	"sort"
+
+	"github.com/Manicen/task-3/internal/config"
+	"github.com/Manicen/task-3/internal/currency"
 )
 
 func main() {
 	configPath := flag.String("config", "", "path to config file")
 	flag.Parse()
 
-	cfg, err := readConfig(*configPath)
+	cfg, err := config.ReadConfig(*configPath)
 	if err != nil {
 		panic(err)
 	}
 
-	currencies, err := readValutes(cfg.InputFile)
+	currencies, err := currency.ReadValutes(cfg.InputFile)
 	if err != nil {
 		panic(err)
 	}
@@ -23,7 +26,7 @@ func main() {
 		return currencies[i].Value > currencies[j].Value
 	})
 
-	if err := writeJSON(cfg.OutputFile, currencies); err != nil {
+	if err := currency.WriteJSON(cfg.OutputFile, currencies); err != nil {
 		panic(err)
 	}
 }
