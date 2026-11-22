@@ -50,7 +50,6 @@ func (d *Decimal) UnmarshalText(text []byte) error {
 	}
 
 	val, err := strconv.ParseFloat(wholeStr, 64)
-
 	if err != nil {
 		return fmt.Errorf("parse decimal %q: %w", text, err)
 	}
@@ -72,7 +71,6 @@ type Valute struct {
 
 func LoadFromXML(path string) ([]Valute, error) {
 	file, err := os.Open(path)
-
 	if err != nil {
 		return nil, fmt.Errorf("open xml: %w", err)
 	}
@@ -114,7 +112,6 @@ func SaveToJSON(path string, valutes []Valute, dirPerm, filePerm os.FileMode) er
 	}
 
 	data, err := json.MarshalIndent(valutes, "", "    ")
-
 	if err != nil {
 		return fmt.Errorf("encode json: %w", err)
 	}

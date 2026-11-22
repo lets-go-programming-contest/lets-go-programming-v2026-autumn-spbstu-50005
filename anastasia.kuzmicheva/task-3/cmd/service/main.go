@@ -19,13 +19,11 @@ func main() {
 	flag.Parse()
 
 	cfg, err := config.Load(*configPath)
-
 	if err != nil {
 		panic(err)
 	}
 
 	valutes, err := currency.LoadFromXML(cfg.InputFile)
-
 	if err != nil {
 		panic(err)
 	}
