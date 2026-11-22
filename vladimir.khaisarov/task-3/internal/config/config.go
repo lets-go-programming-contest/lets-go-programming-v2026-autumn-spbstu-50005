@@ -16,6 +16,14 @@ type Config struct {
 	OutputFile string `yaml:"output-file"`
 }
 
+func (cfg Config) Validate() error {
+	if cfg.InputFile == "" || cfg.OutputFile == "" {
+		return ErrEmptyPath
+	}
+
+	return nil
+}
+
 func Load(path string) (Config, error) {
 	var cfg Config
 
@@ -28,8 +36,8 @@ func Load(path string) (Config, error) {
 		return cfg, fmt.Errorf("decode config file: %w", err)
 	}
 
-	if cfg.InputFile == "" || cfg.OutputFile == "" {
-		return cfg, ErrEmptyPath
+	if err := cfg.Validate(); err != nil {
+		return cfg, err
 	}
 
 	return cfg, nil

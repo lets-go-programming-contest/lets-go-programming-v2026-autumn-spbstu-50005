@@ -14,11 +14,6 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
-const (
-	dirPermissions  = 0o755
-	filePermissions = 0o644
-)
-
 var ErrInvalidRate = errors.New("invalid rate format")
 
 type Rate float64
@@ -51,14 +46,16 @@ type Currency struct {
 	Value    Rate   `json:"value"     xml:"Value"`
 }
 
-type valCurs struct {
+type ValCurs struct {
 	Currencies []Currency `xml:"Valute"`
 }
 
-func ReadXML(path string) ([]Currency, error) {
+func ReadXML[T any](path string) (T, error) {
+	var data T
+
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
-		return nil, fmt.Errorf("open input file: %w", err)
+		return data, fmt.Errorf("open input file: %w", err)
 	}
 
 	defer func() {
@@ -68,13 +65,11 @@ func ReadXML(path string) ([]Currency, error) {
 	decoder := xml.NewDecoder(file)
 	decoder.CharsetReader = charset.NewReaderLabel
 
-	var data valCurs
-
 	if err := decoder.Decode(&data); err != nil {
-		return nil, fmt.Errorf("decode input file: %w", err)
+		return data, fmt.Errorf("decode input file: %w", err)
 	}
 
-	return data.Currencies, nil
+	return data, nil
 }
 
 func SortByValueDesc(currencies []Currency) {
@@ -83,17 +78,17 @@ func SortByValueDesc(currencies []Currency) {
 	})
 }
 
-func WriteJSON(path string, currencies []Currency) error {
+func WriteJSON[T any](path string, data T, dirPermissions, filePermissions os.FileMode) error {
 	if err := os.MkdirAll(filepath.Dir(path), dirPermissions); err != nil {
 		return fmt.Errorf("create output directory: %w", err)
 	}
 
-	data, err := json.MarshalIndent(currencies, "", "    ")
+	encoded, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return fmt.Errorf("encode json: %w", err)
 	}
 
-	if err := os.WriteFile(path, data, filePermissions); err != nil {
+	if err := os.WriteFile(path, encoded, filePermissions); err != nil {
 		return fmt.Errorf("write output file: %w", err)
 	}
 
