@@ -68,17 +68,20 @@ func charsetReader(charset string, input io.Reader) (io.Reader, error) {
 	case "utf-8", "utf8":
 		return input, nil
 	}
+
 	return nil, fmt.Errorf("%w: unsupported charset %q", ErrInput, charset)
 }
 
 func ReadValutes(path string) ([]OutCurrency, error) {
-	f, err := os.Open(path)
+	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("%w: open %q: %w", ErrInput, path, err)
 	}
-	defer f.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
-	decoder := xml.NewDecoder(f)
+	decoder := xml.NewDecoder(file)
 	decoder.CharsetReader = charsetReader
 
 	var curs valCursDocument
@@ -94,29 +97,26 @@ func ReadValutes(path string) ([]OutCurrency, error) {
 			Value:    float64(v.Value),
 		})
 	}
+
 	return result, nil
 }
 
 func WriteJSON(path string, data []OutCurrency) error {
-	dir := filepath.Dir(path)
-	if dir != "" && dir != "." {
-		if err := os.MkdirAll(dir, folderMode); err != nil {
-			return fmt.Errorf("%w: create dir for %q: %w", ErrOutput, path, err)
-		}
+	// Создаем директорию, если её нет
+	if err := os.MkdirAll(filepath.Dir(path), folderMode); err != nil {
+		return fmt.Errorf("%w: create dir for %q: %w", ErrOutput, path, err)
 	}
 
-	f, err := os.Create(path)
+	// Собираем JSON в память с отступом в 4 пробела
+	payload, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
-		return fmt.Errorf("%w: create %q: %w", ErrOutput, path, err)
+		return fmt.Errorf("%w: encode JSON: %w", ErrOutput, err)
 	}
-	defer f.Close()
 
-	encoder := json.NewEncoder(f)
-	// ИСПРАВЛЕНИЕ: вместо jsonIndent пишем 4 пробела в кавычках
-	encoder.SetIndent("", "    ")
-
-	if err := encoder.Encode(data); err != nil {
-		return fmt.Errorf("%w: encode JSON to %q: %w", ErrOutput, path, err)
+	// Записываем в файл
+	if err := os.WriteFile(path, payload, fileMode); err != nil {
+		return fmt.Errorf("%w: write JSON %q: %w", ErrOutput, path, err)
 	}
+
 	return nil
 }
