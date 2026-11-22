@@ -102,18 +102,15 @@ func ReadValutes(path string) ([]OutCurrency, error) {
 }
 
 func WriteJSON(path string, data []OutCurrency) error {
-	// Создаем директорию, если её нет
 	if err := os.MkdirAll(filepath.Dir(path), folderMode); err != nil {
 		return fmt.Errorf("%w: create dir for %q: %w", ErrOutput, path, err)
 	}
 
-	// Собираем JSON в память с отступом в 4 пробела
 	payload, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return fmt.Errorf("%w: encode JSON: %w", ErrOutput, err)
 	}
 
-	// Записываем в файл
 	if err := os.WriteFile(path, payload, fileMode); err != nil {
 		return fmt.Errorf("%w: write JSON %q: %w", ErrOutput, path, err)
 	}

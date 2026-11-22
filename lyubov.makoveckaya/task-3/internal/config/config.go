@@ -38,8 +38,10 @@ func ReadConfig(path string) (*Config, error) {
 	if cfg.InputFile == "" {
 		return nil, ErrNoInputFile
 	}
+
 	if cfg.OutputFile == "" {
 		return nil, ErrNoOutputFile
 	}
+
 	return &cfg, nil
 }
