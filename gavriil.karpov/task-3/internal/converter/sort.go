@@ -13,6 +13,7 @@ func SortByValue(currencies []Currency) {
 		if valA < valB {
 			return 1
 		}
+
 		return 0
 	})
 }

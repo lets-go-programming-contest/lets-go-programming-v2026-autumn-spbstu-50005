@@ -20,6 +20,7 @@ func (c *Config) Validate() error {
 	if c.InputFile == "" || c.OutputFile == "" {
 		return ErrEmptyPath
 	}
+
 	return nil
 }
 
