@@ -71,6 +71,7 @@ func SortDesc(items []Currency) {
 }
 
 func SaveJSON(path string, items []Currency) error {
+	
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("could not to make dir %q: %w", dir, err)
