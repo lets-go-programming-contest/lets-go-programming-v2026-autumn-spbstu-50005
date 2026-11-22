@@ -9,7 +9,8 @@ const (
 )
 
 func Parse() *string {
-	configPointer := flag.String(configName, configDefault, configDescription)
+	configPath := flag.String(configName, configDefault, configDescription)
 	flag.Parse()
-	return configPointer
+
+	return configPath
 }

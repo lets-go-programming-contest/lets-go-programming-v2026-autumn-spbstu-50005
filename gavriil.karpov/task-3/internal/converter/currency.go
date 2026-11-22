@@ -10,23 +10,17 @@ import (
 
 type DecimalValue float64
 
-type Currency struct {
-	NumCode  int          `json:"num_code"  xml:"NumCode"`
-	CharCode string       `json:"char_code" xml:"CharCode"`
-	Value    DecimalValue `json:"value"     xml:"Value"`
-}
-
 func (d *DecimalValue) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) error {
 	var raw string
 	if err := decoder.DecodeElement(&raw, &start); err != nil {
-		return err
+		return fmt.Errorf("decode element: %w", err)
 	}
 
 	normalized := strings.Replace(raw, ",", ".", 1)
 
 	parsed, err := strconv.ParseFloat(normalized, 64)
 	if err != nil {
-		return err
+		return fmt.Errorf("parse float: %w", err)
 	}
 
 	*d = DecimalValue(parsed)
@@ -41,4 +35,10 @@ func (d DecimalValue) MarshalJSON() ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+type Currency struct {
+	NumCode  int          `json:"num_code"  xml:"NumCode"`
+	CharCode string       `json:"char_code" xml:"CharCode"`
+	Value    DecimalValue `json:"value"     xml:"Value"`
 }

@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var ErrEmptyPath = errors.New("input- and output-file must be set")
+var ErrEmptyPath = errors.New("input-file and output-file must be set")
 
 type Config struct {
 	InputFile  string `yaml:"input-file"`
@@ -26,12 +26,14 @@ func (c *Config) Validate() error {
 
 func Load(path string) (*Config, error) {
 	cleanPath := filepath.Clean(path)
+
 	data, err := os.ReadFile(cleanPath)
 	if err != nil {
 		return nil, fmt.Errorf("read config file: %w", err)
 	}
 
 	var cfg Config
+
 	if err = yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("parse config file: %w", err)
 	}

@@ -33,9 +33,11 @@ func ReadXML[T any](path string) ([]T, error) {
 		if strings.EqualFold(label, "windows-1251") {
 			return charmap.Windows1251.NewDecoder().Reader(input), nil
 		}
+
 		if strings.EqualFold(label, "utf-8") {
 			return input, nil
 		}
+
 		return nil, fmt.Errorf("%w: %q", ErrUnsupportedCharset, label)
 	}
 
