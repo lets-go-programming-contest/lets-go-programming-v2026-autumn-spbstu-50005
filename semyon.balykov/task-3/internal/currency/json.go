@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 )
 
-const (
-	directoryPermissions = 0o755
-	filePermissions      = 0o644
-)
-
-func WriteJSON(path string, currencies []Currency) error {
+func WriteJSON(
+	path string,
+	currencies []Currency,
+	directoryPermissions os.FileMode,
+	filePermissions os.FileMode,
+) error {
 	outputDirectory := filepath.Dir(path)
 
 	if err := os.MkdirAll(outputDirectory, directoryPermissions); err != nil {
