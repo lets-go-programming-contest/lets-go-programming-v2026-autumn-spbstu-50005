@@ -43,9 +43,17 @@ func Load(path string) (Config, error) {
 		return Config{}, fmt.Errorf("%w: expected one YAML document", ErrInvalidConfig)
 	}
 
-	if strings.TrimSpace(cfg.InputFile) == "" || strings.TrimSpace(cfg.OutputFile) == "" {
-		return Config{}, fmt.Errorf("%w: input-file and output-file must not be empty", ErrInvalidConfig)
+	if err := cfg.Validate(); err != nil {
+		return Config{}, err
 	}
 
 	return cfg, nil
+}
+
+func (cfg Config) Validate() error {
+	if strings.TrimSpace(cfg.InputFile) == "" || strings.TrimSpace(cfg.OutputFile) == "" {
+		return fmt.Errorf("%w: input-file and output-file must not be empty", ErrInvalidConfig)
+	}
+
+	return nil
 }

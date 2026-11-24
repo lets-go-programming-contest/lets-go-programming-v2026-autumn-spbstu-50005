@@ -17,9 +17,9 @@ import (
 )
 
 type Currency struct {
-	NumCode  int     `json:"num_code"`
-	CharCode string  `json:"char_code"`
-	Value    float64 `json:"value"`
+	NumCode  int    `json:"num_code"  xml:"NumCode"`
+	CharCode string `json:"char_code" xml:"CharCode"`
+	Value    Value  `json:"value"     xml:"Value"`
 }
 
 func SortByValue(currencies []Currency) {
@@ -29,20 +29,13 @@ func SortByValue(currencies []Currency) {
 }
 
 var (
-	ErrInvalidXML          = errors.New("invalid currencies XML")
 	ErrUnsupportedEncoding = errors.New("unsupported XML encoding")
 	ErrInvalidValue        = errors.New("invalid currency Value")
 )
 
-type xmlCurrency struct {
-	NumCode  int    `xml:"NumCode"`
-	CharCode string `xml:"CharCode"`
-	Value    string `xml:"Value"`
-}
-
 type xmlRates struct {
-	XMLName    xml.Name      `xml:"ValCurs"`
-	Currencies []xmlCurrency `xml:"Valute"`
+	XMLName    xml.Name   `xml:"ValCurs"`
+	Currencies []Currency `xml:"Valute"`
 }
 
 func ReadXML(path string) ([]Currency, error) {
@@ -56,22 +49,7 @@ func ReadXML(path string) ([]Currency, error) {
 		return nil, err
 	}
 
-	currencies := make([]Currency, 0, len(rates.Currencies))
-
-	for _, rate := range rates.Currencies {
-		value, err := parseValue(rate.Value)
-		if err != nil {
-			return nil, fmt.Errorf("parse Value %q for %s: %w", rate.Value, rate.CharCode, err)
-		}
-
-		currencies = append(currencies, Currency{
-			NumCode:  rate.NumCode,
-			CharCode: rate.CharCode,
-			Value:    value,
-		})
-	}
-
-	return currencies, nil
+	return rates.Currencies, nil
 }
 
 func decodeXML(data []byte) (xmlRates, error) {
@@ -86,52 +64,29 @@ func decodeXML(data []byte) (xmlRates, error) {
 
 	var rates xmlRates
 
-	seenRoot := false
+	rates.Currencies = make([]Currency, 0)
 
-	for {
-		token, err := decoder.Token()
-		if errors.Is(err, io.EOF) {
-			break
-		}
-
-		if err != nil {
-			return xmlRates{}, fmt.Errorf("decode XML: %w", err)
-		}
-
-		if start, ok := token.(xml.StartElement); ok {
-			if seenRoot {
-				return xmlRates{}, ErrInvalidXML
-			}
-
-			if err := decoder.DecodeElement(&rates, &start); err != nil {
-				return xmlRates{}, fmt.Errorf("decode XML: %w", err)
-			}
-
-			seenRoot = true
-		} else if text, ok := token.(xml.CharData); ok && strings.TrimSpace(string(text)) != "" {
-			return xmlRates{}, ErrInvalidXML
-		}
-	}
-
-	if !seenRoot {
-		return xmlRates{}, ErrInvalidXML
+	if err := decoder.Decode(&rates); err != nil {
+		return xmlRates{}, fmt.Errorf("decode XML: %w", err)
 	}
 
 	return rates, nil
 }
 
-func parseValue(text string) (float64, error) {
-	text = strings.TrimSpace(text)
+type Value float64
+
+func (value *Value) UnmarshalText(data []byte) error {
+	text := strings.TrimSpace(string(data))
 	whole, fraction, hasComma := strings.Cut(text, ",")
 
 	if whole == "" || (hasComma && fraction == "") {
-		return 0, ErrInvalidValue
+		return ErrInvalidValue
 	}
 
 	for _, part := range []string{whole, fraction} {
 		for _, digit := range part {
 			if digit < '0' || digit > '9' {
-				return 0, ErrInvalidValue
+				return ErrInvalidValue
 			}
 		}
 	}
@@ -140,12 +95,14 @@ func parseValue(text string) (float64, error) {
 		text = whole + "." + fraction
 	}
 
-	value, err := strconv.ParseFloat(text, 64)
+	number, err := strconv.ParseFloat(text, 64)
 	if err != nil {
-		return 0, fmt.Errorf("%w: %w", ErrInvalidValue, err)
+		return fmt.Errorf("%w: %w", ErrInvalidValue, err)
 	}
 
-	return value, nil
+	*value = Value(number)
+
+	return nil
 }
 
 func WriteJSON(path string, currencies []Currency, dirMode, fileMode os.FileMode) error {
