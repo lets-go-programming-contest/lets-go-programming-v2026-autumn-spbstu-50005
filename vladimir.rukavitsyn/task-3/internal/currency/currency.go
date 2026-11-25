@@ -3,40 +3,27 @@ package currency
 import (
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
+	"sort"
 	"strconv"
 	"strings"
 
 	"golang.org/x/net/html/charset"
 )
 
-const (
-	DirMode  os.FileMode = 0o755
-	FileMode os.FileMode = 0o644
-)
-
-var ErrBadNumber = errors.New("invalid number format")
-
-// Rate хранит курс. В XML ЦБ число записано с запятой: "43,8254".
 type Rate float64
 
 func (r *Rate) UnmarshalText(text []byte) error {
-	raw := strings.TrimSpace(string(text))
+	value := strings.ReplaceAll(strings.TrimSpace(string(text)), ",", ".")
 
-	if strings.Count(raw, ",")+strings.Count(raw, ".") > 1 {
-		return fmt.Errorf("%w: %q", ErrBadNumber, raw)
-	}
-
-	parsed, err := strconv.ParseFloat(strings.ReplaceAll(raw, ",", "."), 64)
+	number, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		return fmt.Errorf("parse rate %q: %w", raw, err)
+		return fmt.Errorf("parse rate %q: %w", value, err)
 	}
 
-	*r = Rate(parsed)
+	*r = Rate(number)
 
 	return nil
 }
@@ -47,14 +34,16 @@ type Currency struct {
 	Value    Rate   `json:"value"     xml:"Value"`
 }
 
-type document struct {
-	Items []Currency `xml:"Valute"`
+type ValCurs struct {
+	Currencies []Currency `xml:"Valute"`
 }
 
-func Load(path string) ([]Currency, error) {
+func ReadXML[T any](path string) (T, error) {
+	var data T
+
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
-		return nil, fmt.Errorf("open xml: %w", err)
+		return data, fmt.Errorf("open input file: %w", err)
 	}
 
 	defer func() {
@@ -64,40 +53,31 @@ func Load(path string) ([]Currency, error) {
 	decoder := xml.NewDecoder(file)
 	decoder.CharsetReader = charset.NewReaderLabel
 
-	var doc document
-
-	if err := decoder.Decode(&doc); err != nil {
-		return nil, fmt.Errorf("decode xml: %w", err)
+	if err := decoder.Decode(&data); err != nil {
+		return data, fmt.Errorf("decode input file: %w", err)
 	}
 
-	return doc.Items, nil
+	return data, nil
 }
 
-func SortDesc(items []Currency) {
-	slices.SortStableFunc(items, func(a, b Currency) int {
-		switch {
-		case a.Value > b.Value:
-			return -1
-		case a.Value < b.Value:
-			return 1
-		default:
-			return 0
-		}
+func SortByValueDesc(currencies []Currency) {
+	sort.Slice(currencies, func(first, second int) bool {
+		return currencies[first].Value > currencies[second].Value
 	})
 }
 
-func Save(path string, items []Currency) error {
-	if err := os.MkdirAll(filepath.Dir(path), DirMode); err != nil {
-		return fmt.Errorf("create directory: %w", err)
+func WriteJSON[T any](path string, data T, dirPerm, filePerm os.FileMode) error {
+	if err := os.MkdirAll(filepath.Dir(path), dirPerm); err != nil {
+		return fmt.Errorf("create output directory: %w", err)
 	}
 
-	data, err := json.MarshalIndent(items, "", "    ")
+	encoded, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return fmt.Errorf("encode json: %w", err)
 	}
 
-	if err := os.WriteFile(path, data, FileMode); err != nil {
-		return fmt.Errorf("write json: %w", err)
+	if err := os.WriteFile(path, encoded, filePerm); err != nil {
+		return fmt.Errorf("write output file: %w", err)
 	}
 
 	return nil
