@@ -5,37 +5,40 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
-var ErrMissingField = errors.New("input-file and output-file must be set")
+var ErrEmptyField = errors.New("input-file and output-file must be set")
 
 type Config struct {
 	InputFile  string `yaml:"input-file"`
 	OutputFile string `yaml:"output-file"`
 }
 
-func Load(path string) (*Config, error) {
-	file, err := os.Open(filepath.Clean(path))
-	if err != nil {
-		return nil, fmt.Errorf("open config: %w", err)
+func (c Config) validate() error {
+	if c.InputFile == "" || c.OutputFile == "" {
+		return ErrEmptyField
 	}
 
-	defer func() {
-		_ = file.Close()
-	}()
+	return nil
+}
 
+func Load(path string) (Config, error) {
 	var cfg Config
 
-	if err := yaml.NewDecoder(file).Decode(&cfg); err != nil {
-		return nil, fmt.Errorf("decode config: %w", err)
+	content, err := os.ReadFile(filepath.Clean(path))
+	if err != nil {
+		return cfg, fmt.Errorf("read config: %w", err)
 	}
 
-	if strings.TrimSpace(cfg.InputFile) == "" || strings.TrimSpace(cfg.OutputFile) == "" {
-		return nil, ErrMissingField
+	if err := yaml.Unmarshal(content, &cfg); err != nil {
+		return cfg, fmt.Errorf("parse config: %w", err)
 	}
 
-	return &cfg, nil
+	if err := cfg.validate(); err != nil {
+		return cfg, err
+	}
+
+	return cfg, nil
 }
