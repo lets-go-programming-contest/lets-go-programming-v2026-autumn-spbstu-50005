@@ -2,10 +2,16 @@ package main
 
 import (
 	"flag"
+	"os"
 	"sort"
 
 	"github.com/Manicen/task-3/internal/config"
 	"github.com/Manicen/task-3/internal/currency"
+)
+
+const (
+	folderMode os.FileMode = 0o755
+	fileMode   os.FileMode = 0o644
 )
 
 func main() {
@@ -26,7 +32,7 @@ func main() {
 		return currencies[i].Value > currencies[j].Value
 	})
 
-	if err := currency.WriteJSON(cfg.OutputFile, currencies); err != nil {
+	if err := currency.WriteJSON(cfg.OutputFile, currencies, folderMode, fileMode); err != nil {
 		panic(err)
 	}
 }
