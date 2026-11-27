@@ -40,9 +40,9 @@ func (rv *RateValue) UnmarshalText(data []byte) error {
 }
 
 type Rate struct {
-	NumCode  int       `xml:"NumCode" json:"num_code"`
-	CharCode string    `xml:"CharCode" json:"char_code"`
-	Value    RateValue `xml:"Value" json:"value"`
+	NumCode  int       `json:"num_code"  xml:"NumCode"`
+	CharCode string    `json:"char_code" xml:"CharCode"`
+	Value    RateValue `json:"value"     xml:"Value"`
 }
 
 type valCursDocument struct {
