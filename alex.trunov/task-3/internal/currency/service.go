@@ -13,8 +13,6 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
-const outputDirPerm = 0o755
-
 var errMissingValCurs = errors.New("incorrect XML signature: ValCurs is missing")
 
 type valCursDocument struct {
@@ -51,12 +49,7 @@ func SortDesc(items []Currency) {
 
 func SaveJSON(path string, items []Currency, dirPerm os.FileMode) error {
 	dir := filepath.Dir(path)
-<<<<<<< HEAD
-
-	if err := os.MkdirAll(dir, outputDirPerm); err != nil {
-=======
 	if err := os.MkdirAll(dir, dirPerm); err != nil {
->>>>>>> bb5b98a ([TASK-3] refactor config, dirPerm, XML decoding)
 		return fmt.Errorf("could not to make dir %q: %w", dir, err)
 	}
 
