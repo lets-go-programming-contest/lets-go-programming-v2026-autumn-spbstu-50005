@@ -18,26 +18,43 @@ import (
 var (
 	errUnsupportedEncoding = errors.New("unsupported XML encoding")
 	errNonFiniteValue      = errors.New("currency value must be finite")
-	errMissingRoot         = errors.New("expected ValCurs as the XML root")
-	errTrailingXML         = errors.New("unexpected data after ValCurs")
 )
 
 type xmlDocument struct {
 	XMLName xml.Name   `xml:"ValCurs"`
-	Entries []xmlEntry `xml:"Valute"`
-}
-
-type xmlEntry struct {
-	ID       string `xml:"ID,attr"`
-	NumCode  int    `xml:"NumCode"`
-	CharCode string `xml:"CharCode"`
-	Value    string `xml:"Value"`
+	Entries []Currency `xml:"Valute"`
 }
 
 type Currency struct {
-	NumCode  int     `json:"num_code"`
-	CharCode string  `json:"char_code"`
-	Value    float64 `json:"value"`
+	NumCode  int           `json:"num_code"  xml:"NumCode"`
+	CharCode string        `json:"char_code" xml:"CharCode"`
+	Value    ExchangeValue `json:"value"     xml:"Value"`
+}
+
+type ExchangeValue float64
+
+func (value *ExchangeValue) UnmarshalText(data []byte) error {
+	numberText := strings.TrimSpace(string(data))
+	whole, fraction, hasComma := strings.Cut(numberText, ",")
+
+	if hasComma {
+		numberText = whole + "." + fraction
+	}
+
+	const bits = 64
+
+	number, err := strconv.ParseFloat(numberText, bits)
+	if err != nil {
+		return fmt.Errorf("parse Value %q: %w", string(data), err)
+	}
+
+	if math.IsNaN(number) || math.IsInf(number, 0) {
+		return fmt.Errorf("%w: %q", errNonFiniteValue, string(data))
+	}
+
+	*value = ExchangeValue(number)
+
+	return nil
 }
 
 func charsetReader(label string, input io.Reader) (io.Reader, error) {
@@ -48,75 +65,15 @@ func charsetReader(label string, input io.Reader) (io.Reader, error) {
 	return nil, fmt.Errorf("%w: %q", errUnsupportedEncoding, label)
 }
 
-func nextXMLContent(decoder *xml.Decoder) (xml.Token, error) {
-	for {
-		token, err := decoder.Token()
-		if err != nil {
-			return nil, fmt.Errorf("read XML token: %w", err)
-		}
-
-		switch token := token.(type) {
-		case xml.Comment, xml.ProcInst:
-			continue
-		case xml.CharData:
-			if len(bytes.TrimSpace(token)) == 0 {
-				continue
-			}
-		}
-
-		return token, nil
-	}
-}
-
 func decodeXML(data []byte, target any) error {
 	decoder := xml.NewDecoder(bytes.NewReader(data))
 	decoder.CharsetReader = charsetReader
 
-	firstToken, err := nextXMLContent(decoder)
-	if err != nil {
-		return err
-	}
-
-	root, ok := firstToken.(xml.StartElement)
-	if !ok {
-		return errMissingRoot
-	}
-
-	if err := decoder.DecodeElement(target, &root); err != nil {
+	if err := decoder.Decode(target); err != nil {
 		return fmt.Errorf("parse CBR XML: %w", err)
 	}
 
-	if _, err := nextXMLContent(decoder); !errors.Is(err, io.EOF) {
-		if err != nil {
-			return err
-		}
-
-		return errTrailingXML
-	}
-
 	return nil
-}
-
-func parseValue(text string) (float64, error) {
-	numberText := strings.TrimSpace(text)
-	whole, fraction, hasComma := strings.Cut(numberText, ",")
-
-	if hasComma {
-		numberText = whole + "." + fraction
-	}
-
-	const bits = 64
-
-	value, err := strconv.ParseFloat(numberText, bits)
-	if err != nil {
-		return 0, fmt.Errorf("parse Value %q: %w", text, err)
-	}
-
-	if math.IsNaN(value) || math.IsInf(value, 0) {
-		return 0, fmt.Errorf("%w: %q", errNonFiniteValue, text)
-	}
-
-	return value, nil
 }
 
 func Load(path string) ([]Currency, error) {
@@ -125,22 +82,11 @@ func Load(path string) ([]Currency, error) {
 		return nil, fmt.Errorf("read CBR XML: %w", err)
 	}
 
-	currencies := make([]Currency, 0, len(document.Entries))
-
-	for _, entry := range document.Entries {
-		value, err := parseValue(entry.Value)
-		if err != nil {
-			return nil, fmt.Errorf("currency %q: %w", entry.ID, err)
-		}
-
-		currencies = append(currencies, Currency{
-			NumCode:  entry.NumCode,
-			CharCode: entry.CharCode,
-			Value:    value,
-		})
+	if document.Entries == nil {
+		return []Currency{}, nil
 	}
 
-	return currencies, nil
+	return document.Entries, nil
 }
 
 func SortDescending(currencies []Currency) {
