@@ -6,7 +6,6 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -18,6 +17,11 @@ const outputDirPerm = 0o755
 
 var errMissingValCurs = errors.New("incorrect XML signature: ValCurs is missing")
 
+type valCursDocument struct {
+	XMLName xml.Name   `xml:"ValCurs"`
+	Valutes []Currency `xml:"Valute"`
+}
+
 func LoadXML(path string) ([]Currency, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -27,43 +31,16 @@ func LoadXML(path string) ([]Currency, error) {
 	decoder := xml.NewDecoder(bytes.NewReader(data))
 	decoder.CharsetReader = charset.NewReaderLabel
 
-	var currencies []Currency
-
-	hasRoot := false
-
-	for {
-		tok, err := decoder.Token()
-		if errors.Is(err, io.EOF) {
-			break
-		}
-
-		if err != nil {
-			return nil, fmt.Errorf("error of reading XML: %w", err)
-		}
-
-		startElem, ok := tok.(xml.StartElement)
-		if !ok {
-			continue
-		}
-
-		switch startElem.Name.Local {
-		case "ValCurs":
-			hasRoot = true
-		case "Valute":
-			var item Currency
-			if err := decoder.DecodeElement(&item, &startElem); err != nil {
-				return nil, fmt.Errorf("error of decoding Valute: %w", err)
-			}
-
-			currencies = append(currencies, item)
-		}
+	var doc valCursDocument
+	if err := decoder.Decode(&doc); err != nil {
+		return nil, fmt.Errorf("error of decoding XML: %w", err)
 	}
 
-	if !hasRoot {
+	if doc.XMLName.Local != "ValCurs" {
 		return nil, errMissingValCurs
 	}
 
-	return currencies, nil
+	return doc.Valutes, nil
 }
 
 func SortDesc(items []Currency) {
@@ -72,10 +49,14 @@ func SortDesc(items []Currency) {
 	})
 }
 
-func SaveJSON(path string, items []Currency) error {
+func SaveJSON(path string, items []Currency, dirPerm os.FileMode) error {
 	dir := filepath.Dir(path)
+<<<<<<< HEAD
 
 	if err := os.MkdirAll(dir, outputDirPerm); err != nil {
+=======
+	if err := os.MkdirAll(dir, dirPerm); err != nil {
+>>>>>>> bb5b98a ([TASK-3] refactor config, dirPerm, XML decoding)
 		return fmt.Errorf("could not to make dir %q: %w", dir, err)
 	}
 

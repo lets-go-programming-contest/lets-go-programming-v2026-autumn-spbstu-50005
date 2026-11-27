@@ -6,9 +6,15 @@ import (
 	"github.com/AlEx-Truno/task-3/internal/currency"
 )
 
+const dirPerm = 0o755
+
 func main() {
 	configPath := cli.MustGetConfigPath()
-	cfg := config.MustLoad(configPath)
+
+	cfg, err := config.Load(configPath)
+	if err != nil {
+		panic(err)
+	}
 
 	currencies, err := currency.LoadXML(cfg.InputFile)
 	if err != nil {
@@ -17,7 +23,7 @@ func main() {
 
 	currency.SortDesc(currencies)
 
-	if err := currency.SaveJSON(cfg.OutputFile, currencies); err != nil {
+	if err := currency.SaveJSON(cfg.OutputFile, currencies, dirPerm); err != nil {
 		panic(err)
 	}
 }

@@ -12,16 +12,16 @@ type Config struct {
 	OutputFile string `yaml:"output-file"`
 }
 
-func MustLoad(path string) Config {
+func Load(path string) (Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		panic(fmt.Errorf("config failed to read: %w", err))
+		return Config{}, fmt.Errorf("config failed to read: %w", err)
 	}
 
 	var cfg Config
-	if err = yaml.Unmarshal(data, &cfg); err != nil {
-		panic(fmt.Errorf("config failed to parse: %w", err))
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return Config{}, fmt.Errorf("config failed to parse: %w", err)
 	}
 
-	return cfg
+	return cfg, nil
 }
