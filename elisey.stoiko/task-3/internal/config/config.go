@@ -16,6 +16,17 @@ type Config struct {
 	OutputFilePath string `yaml:"output-file"`
 }
 
+func (cfg *Config) validate() error {
+	cfg.InputFilePath = strings.TrimSpace(cfg.InputFilePath)
+	cfg.OutputFilePath = strings.TrimSpace(cfg.OutputFilePath)
+
+	if cfg.InputFilePath == "" || cfg.OutputFilePath == "" {
+		return ErrEmptyFilePath
+	}
+
+	return nil
+}
+
 func Load(path string) (Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -27,11 +38,8 @@ func Load(path string) (Config, error) {
 		return Config{}, fmt.Errorf("decode config %q: did not find expected key: %w", path, err)
 	}
 
-	cfg.InputFilePath = strings.TrimSpace(cfg.InputFilePath)
-	cfg.OutputFilePath = strings.TrimSpace(cfg.OutputFilePath)
-
-	if cfg.InputFilePath == "" || cfg.OutputFilePath == "" {
-		return Config{}, fmt.Errorf("validate config %q: %w", path, ErrEmptyFilePath)
+	if err := cfg.validate(); err != nil {
+		return Config{}, fmt.Errorf("validate config %q: %w", path, err)
 	}
 
 	return cfg, nil

@@ -9,6 +9,8 @@ import (
 	"github.com/estoiko/task-3/internal/currency"
 )
 
+const outputDirPerm os.FileMode = 0o755
+
 func main() {
 	flags := flag.NewFlagSet("service", flag.ContinueOnError)
 	configPath := flags.String("config", "", "path to YAML configuration file")
@@ -37,8 +39,7 @@ func main() {
 
 	currency.SortByValue(currencies)
 
-	err = currency.WriteJSON(cfg.OutputFilePath, currencies)
-	if err != nil {
+	if err := currency.WriteJSON(cfg.OutputFilePath, currencies, outputDirPerm); err != nil {
 		panic(err)
 	}
 }
